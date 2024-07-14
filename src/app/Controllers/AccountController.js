@@ -85,6 +85,7 @@ export const login = async (req, res) => {
 
 // [POST] /auth/loginwithfirebase
 export const loginWithFirebase = async (req, res) => {
+    console.log(req.body);
     try {
         const { token: accessToken, userName, id } = req.body;
         if (!accessToken || !userName || !id) {
@@ -95,10 +96,12 @@ export const loginWithFirebase = async (req, res) => {
                 ok: false,
             });
         }
+        console.log(111111111111111);
 
         let existUser = await accountsModel.findOne({
             id,
         });
+        console.log(existUser);
 
         if (!existUser) {
             existUser = await accountsModel({
@@ -109,6 +112,7 @@ export const loginWithFirebase = async (req, res) => {
         }
 
         const token = generatorToken(existUser.id);
+        console.log(token);
 
         const oneYearFromNow = new Date();
         oneYearFromNow.setFullYear(oneYearFromNow.getFullYear() + 1);
@@ -116,6 +120,8 @@ export const loginWithFirebase = async (req, res) => {
             'Set-Cookie',
             `accessToken=${token}; Path=/; HttpOnly; Expires=${oneYearFromNow.toUTCString()}; Secure; Partitioned; SameSite=None`,
         );
+        console.log(2222222222222);
+
         res.status(200).json({
             data: {
                 id: existUser.id,
@@ -127,6 +133,7 @@ export const loginWithFirebase = async (req, res) => {
             ok: true,
             statusCode: 200,
         });
+        console.log(33333333333);
     } catch (error) {
         res.status(400).json({
             data: error,
