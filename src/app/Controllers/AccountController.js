@@ -6,7 +6,6 @@ import { v4 as uuidv4 } from 'uuid';
 export const register = async (req, res) => {
     try {
         const newUserFromClient = req.body;
-
         if (!newUserFromClient.email || !newUserFromClient.password || !newUserFromClient.userName) {
             return res.status(400).json({
                 data: null,
@@ -26,7 +25,7 @@ export const register = async (req, res) => {
                 ok: false,
             });
         }
-        const user = await accountsModel(newUserFromClient);
+        const user = new accountsModel(newUserFromClient);
         await user.save();
         res.status(200).json({
             statusCode: 200,
@@ -37,9 +36,9 @@ export const register = async (req, res) => {
     } catch (error) {
         return res.status(400).json({
             statusCode: 400,
-            message: 'Something went wrong.',
+            message: 'Something went wrong',
             ok: false,
-            data: null,
+            data: error,
         });
     }
 };
@@ -52,7 +51,9 @@ export const login = async (req, res) => {
         });
 
         if (!user) {
-            return res.status(401).json({ statusCode: 401, message: 'User is not exist', ok: false, data: null });
+            return res
+                .status(401)
+                .json({ statusCode: 401, message: 'Email or passord is incorrect.', ok: false, data: null });
         }
         const token = generatorToken(user.id);
         const oneYearFromNow = new Date();
@@ -77,7 +78,7 @@ export const login = async (req, res) => {
         res.status(400).json({
             data: error,
             statusCode: 400,
-            message: 'Something went wrong. Login failed.',
+            message: 'Something went wrong Login failed.',
             ok: false,
         });
     }
@@ -85,9 +86,8 @@ export const login = async (req, res) => {
 
 // [POST] /auth/loginwithfirebase
 export const loginWithFirebase = async (req, res) => {
-    console.log(req.body);
     try {
-        const { token: accessToken, userName, id } = req.body;
+        const { accessToken, userName, id } = req.body;
         if (!accessToken || !userName || !id) {
             return res.status(400).json({
                 data: null,
@@ -96,32 +96,23 @@ export const loginWithFirebase = async (req, res) => {
                 ok: false,
             });
         }
-        console.log(111111111111111);
-
         let existUser = await accountsModel.findOne({
             id,
         });
-        console.log(existUser);
-
         if (!existUser) {
-            existUser = await accountsModel({
+            existUser = new accountsModel({
                 userName,
                 id,
             });
             await existUser.save();
         }
-
         const token = generatorToken(existUser.id);
-        console.log(token);
-
         const oneYearFromNow = new Date();
         oneYearFromNow.setFullYear(oneYearFromNow.getFullYear() + 1);
         res.setHeader(
             'Set-Cookie',
             `accessToken=${token}; Path=/; HttpOnly; Expires=${oneYearFromNow.toUTCString()}; Secure; Partitioned; SameSite=None`,
         );
-        console.log(2222222222222);
-
         res.status(200).json({
             data: {
                 id: existUser.id,
@@ -133,12 +124,11 @@ export const loginWithFirebase = async (req, res) => {
             ok: true,
             statusCode: 200,
         });
-        console.log(33333333333);
     } catch (error) {
         res.status(400).json({
             data: error,
             statusCode: 400,
-            message: 'Something went wrong. Login failed.',
+            message: 'Something went wrong Login failed.',
             ok: false,
         });
     }
