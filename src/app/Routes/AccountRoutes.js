@@ -3,8 +3,8 @@ import { login, loginWithFirebase, register } from '../Controllers/AccountContro
 
 const router = express();
 
-router.post('/register', register);
 router.post('/login', login);
+router.post('/register', register);
 router.post('/loginwithfirebase', loginWithFirebase);
 
 export default router;

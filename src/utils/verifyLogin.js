@@ -1,6 +1,6 @@
 import jwt from 'jsonwebtoken';
 export const verifyLogin = (req, res, next) => {
-    const accessToken = req.cookies.accessToken;
+    const accessToken = req.cookies.sessionToken || req.cookies.accessToken;
     if (accessToken) {
         jwt.verify(accessToken, process.env.CODE_SIGN_JWT, (err, user) => {
             if (err) {
@@ -14,3 +14,4 @@ export const verifyLogin = (req, res, next) => {
         return res.status(403).json('You are not authenticated!');
     }
 };
+// ko bt no nhan sessionToken hay accesstoken

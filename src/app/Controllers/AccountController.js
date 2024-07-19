@@ -1,6 +1,14 @@
-import generatorToken from '../../utils/generatorToken.js';
 import { accountsModel } from '../Models/AccountModel.js';
-import { v4 as uuidv4 } from 'uuid';
+import generatorToken from '../../utils/generatorToken.js';
+
+// {
+//     id?:
+//     email?:
+//     password?:
+//     userName:
+//     createAt:
+//     updateAt:
+// }
 
 // [POST] /auth/register
 export const register = async (req, res) => {
@@ -65,8 +73,6 @@ export const login = async (req, res) => {
 
         res.status(200).json({
             data: {
-                id: user.id,
-                email: user.email,
                 userName: user.userName,
                 accessToken: token,
             },

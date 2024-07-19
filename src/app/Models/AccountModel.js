@@ -5,8 +5,7 @@ const Schema = new mongoose.Schema(
         id: {
             type: String,
             required: true,
-            unique: true,
-            default: uuidv4(),
+            default: () => uuidv4(),
         },
         email: {
             type: String,
