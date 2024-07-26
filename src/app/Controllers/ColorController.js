@@ -1,27 +1,24 @@
-import { isMissingInformationProduct } from '../../utils/isMissingInformationProduct.js';
-import { productsModel } from '../Models/ProductModel.js';
 import { accountsModel } from '../Models/AccountModel.js';
+import { colorsModel } from '../Models/ColorModel.js';
+import { productsModel } from '../Models/ProductModel.js';
 
 // {
 //     _id:
 //     storeId:
-//     categoryObject:
-//     arrayPrice:
 //     name:
-//     isFeature:
-//     isArchive:
+//     value:
 //     createAt:
 //     updateAt
 // }
 
-// [POST] /product
-export const createProduct = async (req, res) => {
+// [POST] /color
+export const createColor = async (req, res) => {
     try {
-        const newProductFromClient = req.body;
-        if (isMissingInformationProduct(newProductFromClient)) {
+        const newColorFromClient = req.body;
+        if (!newColorFromClient.storeId || !newColorFromClient.value || !newColorFromClient.name) {
             return res.status(400).json({
                 statusCode: 400,
-                message: 'Missing information product.',
+                message: 'Missing information color.',
                 ok: false,
                 data: null,
             });
@@ -37,24 +34,23 @@ export const createProduct = async (req, res) => {
                 data: null,
             });
         }
-        const existProduct = await productsModel.findOne({
-            name: { $regex: newProductFromClient.name, $options: 'i' },
-            storeId: newProductFromClient.storeId,
-            'categoryObject.categoryId': newProductFromClient.categoryObject.categoryId,
+        const colorExist = await colorsModel.findOne({
+            name: newColorFromClient.name,
         });
-        if (existProduct) {
+        if (colorExist) {
             return res.status(400).json({
                 statusCode: 400,
-                message: 'Product name is already exist.',
+                message: 'Color name is already exist.',
                 ok: false,
                 data: null,
             });
         }
-        const product = await productsModel(newProductFromClient);
-        await product.save();
+
+        const color = await colorsModel(newColorFromClient);
+        await color.save();
         res.status(200).json({
-            data: product,
-            message: 'Create product success.',
+            data: color,
+            message: 'Create color success.',
             ok: true,
             statusCode: 200,
         });
@@ -62,45 +58,45 @@ export const createProduct = async (req, res) => {
         res.status(400).json({
             data: error,
             statusCode: 400,
-            message: 'Something went wrong. Create product failed.',
+            message: 'Something went wrong. Create color failed.',
             ok: false,
         });
     }
 };
-// [GET] /product
+// [GET] /color
 
-export const getProduct = async (req, res) => {
+export const getColor = async (req, res) => {
     try {
-        const product = await productsModel.findOne({
+        const color = await colorsModel.findOne({
             _id: req.query._id,
             storeId: req.query.storeId,
         });
-        if (!product) {
+        if (!color) {
             return res.status(400).json({
                 data: null,
                 statusCode: 400,
-                message: 'Product id or store id is wrong.',
+                message: 'Color id or storeId is wrong.',
                 ok: false,
             });
         }
         res.status(200).json({
-            data: product,
+            data: color,
             statusCode: 200,
-            message: 'Get product success.',
+            message: 'Get color success.',
             ok: true,
         });
     } catch (error) {
         res.status(400).json({
             data: error,
             statusCode: 400,
-            message: 'Something went wrong. Get product failed.',
+            message: 'Something went wrong. Get color failed.',
             ok: false,
         });
     }
 };
-// [GET] /product/getall
+// [GET] /color/getall
 
-export const getAllProduct = async (req, res) => {
+export const getAllColor = async (req, res) => {
     try {
         if (!req.query.storeId) {
             res.status(200).json({
@@ -110,43 +106,46 @@ export const getAllProduct = async (req, res) => {
                 ok: true,
             });
         }
-        const listProduct = await productsModel
+        const listColor = await colorsModel
             .find({
                 storeId: req.query.storeId,
             })
             .sort({ createdAt: -1 });
         res.status(200).json({
-            data: listProduct,
+            data: listColor,
             statusCode: 200,
-            message: 'Get list product success',
+            message: 'Get color success',
             ok: true,
         });
     } catch (error) {
         res.status(400).json({
             data: error,
             statusCode: 400,
-            message: 'Something went wrong. Get products failed.',
+            message: 'Something went wrong. Get colors failed.',
             ok: false,
         });
     }
 };
-// [PUT] /product
-export const updateProduct = async (req, res) => {
+// [PUT] /color
+
+export const updateColor = async (req, res) => {
     try {
-        const newProductFromClient = req.body;
-        if (isMissingInformationProduct(newProductFromClient)) {
+        const colorId = req.body._id;
+        const name = req.body.name;
+        const storeId = req.body.storeId;
+        const value = req.body.value;
+
+        if (!colorId || !name || !storeId || !value) {
             return res.status(400).json({
                 statusCode: 400,
-                message: 'Missing information billboard .',
+                message: 'Missing information color.',
                 ok: false,
                 data: null,
             });
         }
-
         const userExist = await accountsModel.findOne({
             id: req.user,
         });
-
         if (!userExist) {
             return res.status(403).json({
                 statusCode: 403,
@@ -155,27 +154,26 @@ export const updateProduct = async (req, res) => {
                 data: null,
             });
         }
-
-        const existProduct = await productsModel.findOne({
-            _id: newProductFromClient._id,
-            storeId: newProductFromClient.storeId,
+        const existColor = await colorsModel.findOne({
+            _id: colorId,
+            storeId,
         });
-        if (!existProduct) {
+        if (!existColor) {
             return res.status(400).json({
                 statusCode: 400,
-                message: 'Product id or store id is wrong.',
+                message: 'Color id or store id is wrong.',
                 ok: false,
                 data: null,
             });
         }
-        const { _id, ...orthers } = newProductFromClient;
-        const newProductUpdate = await productsModel.findOneAndUpdate(
+        const newColorUpdate = await colorsModel.findOneAndUpdate(
             {
-                _id: newProductFromClient._id,
-                storeId: newProductFromClient.storeId,
+                _id: colorId,
+                storeId,
             },
             {
-                ...orthers,
+                name: name,
+                value: value,
             },
             {
                 new: true,
@@ -183,30 +181,30 @@ export const updateProduct = async (req, res) => {
         );
 
         res.status(200).json({
-            data: newProductUpdate,
+            data: newColorUpdate,
             statusCode: 200,
-            message: 'Update product success.',
+            message: 'Update color success.',
             ok: true,
         });
     } catch (error) {
         res.status(400).json({
             data: error,
             statusCode: 400,
-            message: 'Something went wrong. Update product failed.',
+            message: 'Something went wrong. Update color failed.',
             ok: false,
         });
     }
 };
-// [DELETE] /product
+// [DELETE] /color
 
-export const deleteProduct = async (req, res) => {
-    const productId = req.body._id;
-    const storeId = req.body.storeId;
+export const deleteColor = async (req, res) => {
     try {
-        if (!productId || !storeId) {
+        const colorId = req.body._id;
+        const storeId = req.body.storeId;
+        if (!colorId || !storeId) {
             return res.status(400).json({
                 statusCode: 400,
-                message: 'Product id or store id  is missing.',
+                message: 'Color information is missing.',
                 ok: false,
                 data: null,
             });
@@ -222,21 +220,47 @@ export const deleteProduct = async (req, res) => {
                 data: null,
             });
         }
-
-        const productDeleted = await productsModel.findOneAndDelete({
-            _id: productId,
+        const color = await colorsModel.findOne({
+            _id: colorId,
+        });
+        if (!color) {
+            return res.status(400).json({
+                statusCode: 400,
+                message: 'Color id is wrong.',
+                ok: false,
+                data: null,
+            });
+        }
+        const existProductConnectWithColor = await productsModel.findOne({
+            storeId,
+            arrayPrice: {
+                $elemMatch: {
+                    colors: color.name,
+                },
+            },
+        });
+        if (existProductConnectWithColor) {
+            return res.status(400).json({
+                statusCode: 400,
+                message: 'This color is connecting with another product.',
+                ok: false,
+                data: null,
+            });
+        }
+        const colorDeleted = await colorsModel.findOneAndDelete({
+            _id: colorId,
             storeId,
         });
         res.status(200).json({
-            data: productDeleted,
-            message: 'Delete product success.',
+            data: colorDeleted,
+            message: 'Delete color success.',
             ok: true,
             statusCode: 200,
         });
     } catch (error) {
         return res.status(400).json({
             statusCode: 400,
-            message: 'Something went wrong. Delete product failed',
+            message: 'Something went wrong. Delete color failed.',
             ok: false,
             data: error,
         });

@@ -12,12 +12,16 @@ const Schema = new mongoose.Schema(
             type: String,
             require: true,
         },
-        categoryId: {
-            type: String,
+        images: {
+            type: Array,
             require: true,
         },
-        price: {
-            type: Number,
+        categoryObject: {
+            type: Object,
+            require: true,
+        },
+        arrayPrice: {
+            type: Array,
             require: true,
         },
         name: {
@@ -33,14 +37,6 @@ const Schema = new mongoose.Schema(
             type: Boolean,
             require: true,
             default: false,
-        },
-        sizes: {
-            type: Array,
-            require: true,
-        },
-        colors: {
-            type: Array,
-            require: true,
         },
     },
     { timestamps: true },

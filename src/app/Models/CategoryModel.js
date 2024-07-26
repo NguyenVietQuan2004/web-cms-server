@@ -16,7 +16,7 @@ const Schema = new mongoose.Schema(
             type: String,
             require: true,
         },
-        billBoardId: {
+        billboardId: {
             type: String,
             require: true,
         },

@@ -14,7 +14,6 @@ import { billBoardsModel } from '../Models/BillBoardModel.js';
 
 //   [POST] /store
 export const createStore = async (req, res) => {
-    console.log(req.body);
     try {
         const newStoreFromClient = req.body;
         if (!newStoreFromClient.name) {
@@ -95,16 +94,14 @@ export const getAllStore = async (req, res) => {
 // [GET] /store/:storeId
 
 export const getStore = async (req, res) => {
-    console.log(typeof req.query.id);
     try {
         const store = await storesModel
             .findOne({
                 userId: req.user,
-                _id: req.query.id,
+                _id: req.query._id,
             })
             .select('-userId');
         if (!store) {
-            console.log('store', store);
             return res.status(400).json({
                 data: null,
                 statusCode: 400,
@@ -130,7 +127,7 @@ export const getStore = async (req, res) => {
 // [PUT] /store
 export const updateStore = async (req, res) => {
     try {
-        const storeId = req.body.storeId;
+        const storeId = req.body._id;
         const newName = req.body.name;
         if (!storeId || !newName) {
             return res.status(400).json({
@@ -174,7 +171,7 @@ export const updateStore = async (req, res) => {
 export const deleteStore = async (req, res) => {
     try {
         const userId = req.user;
-        const storeId = req.body.storeId;
+        const storeId = req.body._id;
 
         const existBillboard = await billBoardsModel.findOne({
             storeId,

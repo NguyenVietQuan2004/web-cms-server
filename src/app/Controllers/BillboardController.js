@@ -13,7 +13,6 @@ import { storesModel } from '../Models/StoreModel.js';
 
 // [POST] /billboard
 export const createBillboard = async (req, res) => {
-    console.log(req.body);
     try {
         const newBillboardFromClient = req.body;
         if (!newBillboardFromClient.label || !newBillboardFromClient.image || !newBillboardFromClient.storeId) {
@@ -57,7 +56,7 @@ export const createBillboard = async (req, res) => {
 export const getBillboard = async (req, res) => {
     try {
         const billboard = await billBoardsModel.findOne({
-            _id: req.query.id,
+            _id: req.query._id,
             storeId: req.query.storeId,
         });
         if (!billboard) {
@@ -132,6 +131,17 @@ export const updateBillboard = async (req, res) => {
                 data: null,
             });
         }
+        const userExist = await accountsModel.findOne({
+            id: req.user,
+        });
+        if (!userExist) {
+            return res.status(403).json({
+                statusCode: 403,
+                message: 'You are not authenticate.',
+                ok: false,
+                data: null,
+            });
+        }
         const existBillboard = await billBoardsModel.findOne({
             _id: billboardId,
             storeId,
@@ -177,12 +187,23 @@ export const updateBillboard = async (req, res) => {
 
 export const deleteBillboard = async (req, res) => {
     try {
-        const billboardId = req.body.billboardId;
+        const billboardId = req.body._id;
         const storeId = req.body.storeId;
         if (!billboardId || !storeId) {
             return res.status(400).json({
                 statusCode: 400,
                 message: 'Billboard information is missing.',
+                ok: false,
+                data: null,
+            });
+        }
+        const userExist = await accountsModel.findOne({
+            id: req.user,
+        });
+        if (!userExist) {
+            return res.status(403).json({
+                statusCode: 403,
+                message: 'You are not authenticate.',
                 ok: false,
                 data: null,
             });
@@ -193,7 +214,7 @@ export const deleteBillboard = async (req, res) => {
         if (existCategories) {
             return res.status(400).json({
                 statusCode: 400,
-                message: 'This billboard not connect with any category to delete.',
+                message: 'This billboard is connecting with another category.',
                 ok: false,
                 data: null,
             });
@@ -211,7 +232,7 @@ export const deleteBillboard = async (req, res) => {
     } catch (error) {
         return res.status(400).json({
             statusCode: 400,
-            message: 'Something went wrong.',
+            message: 'Something went wrong. Delete billboard failed',
             ok: false,
             data: error,
         });

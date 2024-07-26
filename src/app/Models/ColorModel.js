@@ -8,19 +8,19 @@ const Schema = new mongoose.Schema(
             required: true,
             default: () => uuidv4(),
         },
-        label: {
-            type: String,
-            require: true,
-        },
-        image: {
-            type: String,
-            require: true,
-        },
         storeId: {
+            type: String,
+            require: true,
+        },
+        name: {
+            type: String,
+            require: true,
+        },
+        value: {
             type: String,
             require: true,
         },
     },
     { timestamps: true },
 );
-export const billBoardsModel = mongoose.model('billboards', Schema);
+export const colorsModel = mongoose.model('colors', Schema);

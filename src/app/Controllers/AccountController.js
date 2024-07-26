@@ -14,6 +14,7 @@ import generatorToken from '../../utils/generatorToken.js';
 export const register = async (req, res) => {
     try {
         const newUserFromClient = req.body;
+        newUserFromClient.email = newUserFromClient.email.toLowerCase();
         if (!newUserFromClient.email || !newUserFromClient.password || !newUserFromClient.userName) {
             return res.status(400).json({
                 data: null,
@@ -54,7 +55,7 @@ export const register = async (req, res) => {
 export const login = async (req, res) => {
     try {
         const user = await accountsModel.findOne({
-            email: req.body.email,
+            email: { $regex: req.body.email, $options: 'i' },
             password: req.body.password,
         });
 
