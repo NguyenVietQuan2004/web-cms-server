@@ -1,5 +1,5 @@
-import { accountsModel } from '../Models/AccountModel.js';
 import { colorsModel } from '../Models/ColorModel.js';
+import { accountsModel } from '../Models/AccountModel.js';
 import { productsModel } from '../Models/ProductModel.js';
 
 // {
@@ -16,8 +16,8 @@ export const createColor = async (req, res) => {
     try {
         const newColorFromClient = req.body;
         if (!newColorFromClient.storeId || !newColorFromClient.value || !newColorFromClient.name) {
-            return res.status(400).json({
-                statusCode: 400,
+            return res.status(401).json({
+                statusCode: 401,
                 message: 'Missing information color.',
                 ok: false,
                 data: null,
@@ -38,8 +38,8 @@ export const createColor = async (req, res) => {
             name: newColorFromClient.name,
         });
         if (colorExist) {
-            return res.status(400).json({
-                statusCode: 400,
+            return res.status(401).json({
+                statusCode: 401,
                 message: 'Color name is already exist.',
                 ok: false,
                 data: null,
@@ -55,9 +55,9 @@ export const createColor = async (req, res) => {
             statusCode: 200,
         });
     } catch (error) {
-        res.status(400).json({
+        res.status(500).json({
             data: error,
-            statusCode: 400,
+            statusCode: 500,
             message: 'Something went wrong. Create color failed.',
             ok: false,
         });
@@ -86,9 +86,9 @@ export const getColor = async (req, res) => {
             ok: true,
         });
     } catch (error) {
-        res.status(400).json({
+        res.status(500).json({
             data: error,
-            statusCode: 400,
+            statusCode: 500,
             message: 'Something went wrong. Get color failed.',
             ok: false,
         });
@@ -118,9 +118,9 @@ export const getAllColor = async (req, res) => {
             ok: true,
         });
     } catch (error) {
-        res.status(400).json({
+        res.status(500).json({
             data: error,
-            statusCode: 400,
+            statusCode: 500,
             message: 'Something went wrong. Get colors failed.',
             ok: false,
         });
@@ -136,8 +136,8 @@ export const updateColor = async (req, res) => {
         const value = req.body.value;
 
         if (!colorId || !name || !storeId || !value) {
-            return res.status(400).json({
-                statusCode: 400,
+            return res.status(401).json({
+                statusCode: 401,
                 message: 'Missing information color.',
                 ok: false,
                 data: null,
@@ -159,8 +159,8 @@ export const updateColor = async (req, res) => {
             storeId,
         });
         if (!existColor) {
-            return res.status(400).json({
-                statusCode: 400,
+            return res.status(401).json({
+                statusCode: 401,
                 message: 'Color id or store id is wrong.',
                 ok: false,
                 data: null,
@@ -187,9 +187,9 @@ export const updateColor = async (req, res) => {
             ok: true,
         });
     } catch (error) {
-        res.status(400).json({
+        res.status(500).json({
             data: error,
-            statusCode: 400,
+            statusCode: 500,
             message: 'Something went wrong. Update color failed.',
             ok: false,
         });
@@ -202,8 +202,8 @@ export const deleteColor = async (req, res) => {
         const colorId = req.body._id;
         const storeId = req.body.storeId;
         if (!colorId || !storeId) {
-            return res.status(400).json({
-                statusCode: 400,
+            return res.status(401).json({
+                statusCode: 401,
                 message: 'Color information is missing.',
                 ok: false,
                 data: null,
@@ -224,8 +224,8 @@ export const deleteColor = async (req, res) => {
             _id: colorId,
         });
         if (!color) {
-            return res.status(400).json({
-                statusCode: 400,
+            return res.status(401).json({
+                statusCode: 401,
                 message: 'Color id is wrong.',
                 ok: false,
                 data: null,
@@ -240,8 +240,8 @@ export const deleteColor = async (req, res) => {
             },
         });
         if (existProductConnectWithColor) {
-            return res.status(400).json({
-                statusCode: 400,
+            return res.status(401).json({
+                statusCode: 401,
                 message: 'This color is connecting with another product.',
                 ok: false,
                 data: null,
@@ -258,8 +258,8 @@ export const deleteColor = async (req, res) => {
             statusCode: 200,
         });
     } catch (error) {
-        return res.status(400).json({
-            statusCode: 400,
+        return res.status(500).json({
+            statusCode: 500,
             message: 'Something went wrong. Delete color failed.',
             ok: false,
             data: error,

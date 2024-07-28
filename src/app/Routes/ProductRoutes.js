@@ -10,10 +10,10 @@ import { verifyLogin } from '../../utils/verifyLogin.js';
 
 const router = express();
 
-router.get('/', verifyLogin, getProduct);
+router.get('/', getProduct);
+router.get('/getall', getAllProduct);
 router.put('/', verifyLogin, updateProduct);
 router.post('/', verifyLogin, createProduct);
 router.delete('/', verifyLogin, deleteProduct);
-router.get('/getall', verifyLogin, getAllProduct);
 
 export default router;

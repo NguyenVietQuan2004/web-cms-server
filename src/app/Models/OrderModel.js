@@ -8,20 +8,28 @@ const Schema = new mongoose.Schema(
             required: true,
             default: () => uuidv4(),
         },
-        name: {
-            type: String,
-            require: true,
-        },
         storeId: {
             type: String,
             require: true,
         },
-        billboardId: {
+        listProductOrder: {
+            type: Array,
+            require: true,
+            ref: 'products',
+        },
+        isPaid: {
+            type: Boolean,
+            require: true,
+        },
+        phone: {
             type: String,
             require: true,
-            ref: 'billboards',
+        },
+        address: {
+            type: String,
+            require: true,
         },
     },
     { timestamps: true },
 );
-export const categoriesModel = mongoose.model('categories', Schema);
+export const ordersModel = mongoose.model('orders', Schema);

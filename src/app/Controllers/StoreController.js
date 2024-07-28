@@ -3,6 +3,7 @@ import { accountsModel } from '../Models/AccountModel.js';
 import { productsModel } from '../Models/ProductModel.js';
 import { categoriesModel } from '../Models/CategoryModel.js';
 import { billBoardsModel } from '../Models/BillBoardModel.js';
+import { ordersModel } from '../Models/OrderModel.js';
 
 // {
 //     _id:
@@ -17,8 +18,8 @@ export const createStore = async (req, res) => {
     try {
         const newStoreFromClient = req.body;
         if (!newStoreFromClient.name) {
-            return res.status(400).json({
-                statusCode: 400,
+            return res.status(401).json({
+                statusCode: 401,
                 message: 'Missing name store.',
                 ok: false,
                 data: null,
@@ -40,8 +41,8 @@ export const createStore = async (req, res) => {
             userId: req.user,
         });
         if (nameExist) {
-            return res.status(400).json({
-                statusCode: 400,
+            return res.status(401).json({
+                statusCode: 401,
                 message: 'Name store is already exist.',
                 ok: false,
                 data: null,
@@ -58,9 +59,9 @@ export const createStore = async (req, res) => {
             statusCode: 200,
         });
     } catch (error) {
-        res.status(400).json({
+        res.status(500).json({
             data: error,
-            statusCode: 400,
+            statusCode: 500,
             message: 'Something went wrong. Create store failed.',
             ok: false,
         });
@@ -83,9 +84,9 @@ export const getAllStore = async (req, res) => {
             ok: true,
         });
     } catch (error) {
-        res.status(400).json({
+        res.status(500).json({
             data: error,
-            statusCode: 400,
+            statusCode: 500,
             message: 'Something went wrong. Get stores failed.',
             ok: false,
         });
@@ -116,9 +117,9 @@ export const getStore = async (req, res) => {
             ok: true,
         });
     } catch (error) {
-        res.status(400).json({
+        res.status(500).json({
             data: error,
-            statusCode: 400,
+            statusCode: 500,
             message: 'Something went wrong. Get store failed.',
             ok: false,
         });
@@ -130,8 +131,8 @@ export const updateStore = async (req, res) => {
         const storeId = req.body._id;
         const newName = req.body.name;
         if (!storeId || !newName) {
-            return res.status(400).json({
-                statusCode: 400,
+            return res.status(401).json({
+                statusCode: 401,
                 message: 'Missing name or storeId store.',
                 ok: false,
                 data: null,
@@ -159,9 +160,9 @@ export const updateStore = async (req, res) => {
             ok: true,
         });
     } catch (error) {
-        res.status(400).json({
+        res.status(500).json({
             data: error,
-            statusCode: 400,
+            statusCode: 500,
             message: 'Something went wrong. Update store failed.',
             ok: false,
         });
@@ -182,10 +183,13 @@ export const deleteStore = async (req, res) => {
         const existProduct = await productsModel.findOne({
             storeId,
         });
-        if (existBillboard || existCategories || existProduct) {
-            return res.status(400).json({
-                statusCode: 400,
-                message: 'You need to emty billboard, category and product to delete store.',
+        const existOrder = await ordersModel.findOne({
+            storeId,
+        });
+        if (existBillboard || existCategories || existProduct || existOrder) {
+            return res.status(401).json({
+                statusCode: 401,
+                message: 'You need to emty billboard, order, category and product to delete store.',
                 ok: false,
                 data: null,
             });
@@ -203,8 +207,8 @@ export const deleteStore = async (req, res) => {
             statusCode: 200,
         });
     } catch (error) {
-        return res.status(400).json({
-            statusCode: 400,
+        return res.status(500).json({
+            statusCode: 500,
             message: 'Something went wrong.',
             ok: false,
             data: error,

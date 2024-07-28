@@ -1,6 +1,6 @@
+import { sizesModel } from '../Models/SizeModel.js';
 import { accountsModel } from '../Models/AccountModel.js';
 import { productsModel } from '../Models/ProductModel.js';
-import { sizesModel } from '../Models/SizeModel.js';
 
 // {
 //     _id:
@@ -16,8 +16,8 @@ export const createSize = async (req, res) => {
     try {
         const newSizeFromClient = req.body;
         if (!newSizeFromClient.storeId || !newSizeFromClient.value || !newSizeFromClient.name) {
-            return res.status(400).json({
-                statusCode: 400,
+            return res.status(401).json({
+                statusCode: 401,
                 message: 'Missing information size.',
                 ok: false,
                 data: null,
@@ -38,8 +38,8 @@ export const createSize = async (req, res) => {
             name: newSizeFromClient.name,
         });
         if (sizeExist) {
-            return res.status(400).json({
-                statusCode: 400,
+            return res.status(401).json({
+                statusCode: 401,
                 message: 'Size name is already exist.',
                 ok: false,
                 data: null,
@@ -54,9 +54,9 @@ export const createSize = async (req, res) => {
             statusCode: 200,
         });
     } catch (error) {
-        res.status(400).json({
+        res.status(500).json({
             data: error,
-            statusCode: 400,
+            statusCode: 500,
             message: 'Something went wrong. Create size failed.',
             ok: false,
         });
@@ -85,9 +85,9 @@ export const getSize = async (req, res) => {
             ok: true,
         });
     } catch (error) {
-        res.status(400).json({
+        res.status(500).json({
             data: error,
-            statusCode: 400,
+            statusCode: 500,
             message: 'Something went wrong. Get size failed.',
             ok: false,
         });
@@ -117,9 +117,9 @@ export const getAllSize = async (req, res) => {
             ok: true,
         });
     } catch (error) {
-        res.status(400).json({
+        res.status(500).json({
             data: error,
-            statusCode: 400,
+            statusCode: 500,
             message: 'Something went wrong. Get sizes failed.',
             ok: false,
         });
@@ -135,8 +135,8 @@ export const updateSize = async (req, res) => {
         const value = req.body.value;
 
         if (!sizeId || !name || !storeId || !value) {
-            return res.status(400).json({
-                statusCode: 400,
+            return res.status(401).json({
+                statusCode: 401,
                 message: 'Missing information size.',
                 ok: false,
                 data: null,
@@ -158,8 +158,8 @@ export const updateSize = async (req, res) => {
             storeId,
         });
         if (!existSize) {
-            return res.status(400).json({
-                statusCode: 400,
+            return res.status(401).json({
+                statusCode: 401,
                 message: 'Size id or store id is wrong.',
                 ok: false,
                 data: null,
@@ -186,9 +186,9 @@ export const updateSize = async (req, res) => {
             ok: true,
         });
     } catch (error) {
-        res.status(400).json({
+        res.status(500).json({
             data: error,
-            statusCode: 400,
+            statusCode: 500,
             message: 'Something went wrong. Update size failed.',
             ok: false,
         });
@@ -201,8 +201,8 @@ export const deleteSize = async (req, res) => {
         const sizeId = req.body._id;
         const storeId = req.body.storeId;
         if (!sizeId || !storeId) {
-            return res.status(400).json({
-                statusCode: 400,
+            return res.status(401).json({
+                statusCode: 401,
                 message: 'Size information is missing.',
                 ok: false,
                 data: null,
@@ -223,8 +223,8 @@ export const deleteSize = async (req, res) => {
             _id: sizeId,
         });
         if (!size) {
-            return res.status(400).json({
-                statusCode: 400,
+            return res.status(401).json({
+                statusCode: 401,
                 message: 'Size id is wrong.',
                 ok: false,
                 data: null,
@@ -235,8 +235,8 @@ export const deleteSize = async (req, res) => {
             arrayPrice: { $elemMatch: { size: size.value } },
         });
         if (existProductConnectWithSize) {
-            return res.status(400).json({
-                statusCode: 400,
+            return res.status(401).json({
+                statusCode: 401,
                 message: 'This size is connecting with another product.',
                 ok: false,
                 data: null,
@@ -253,8 +253,8 @@ export const deleteSize = async (req, res) => {
             statusCode: 200,
         });
     } catch (error) {
-        return res.status(400).json({
-            statusCode: 400,
+        return res.status(500).json({
+            statusCode: 500,
             message: 'Something went wrong. Delete size failed.',
             ok: false,
             data: error,

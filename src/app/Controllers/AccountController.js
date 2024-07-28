@@ -43,8 +43,8 @@ export const register = async (req, res) => {
             message: 'Register success.',
         });
     } catch (error) {
-        return res.status(400).json({
-            statusCode: 400,
+        return res.status(500).json({
+            statusCode: 500,
             message: 'Something went wrong',
             ok: false,
             data: error,
@@ -82,9 +82,9 @@ export const login = async (req, res) => {
             statusCode: 200,
         });
     } catch (error) {
-        res.status(400).json({
+        res.status(500).json({
             data: error,
-            statusCode: 400,
+            statusCode: 500,
             message: 'Something went wrong Login failed.',
             ok: false,
         });
@@ -132,9 +132,9 @@ export const loginWithFirebase = async (req, res) => {
             statusCode: 200,
         });
     } catch (error) {
-        res.status(400).json({
+        res.status(500).json({
             data: error,
-            statusCode: 400,
+            statusCode: 500,
             message: 'Something went wrong Login failed.',
             ok: false,
         });

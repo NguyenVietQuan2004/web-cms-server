@@ -1,11 +1,15 @@
-import { isMissingInformationProduct } from '../../utils/isMissingInformationProduct.js';
+import { sizesModel } from '../Models/SizeModel.js';
+import { colorsModel } from '../Models/ColorModel.js';
+import { ordersModel } from '../Models/OrderModel.js';
 import { productsModel } from '../Models/ProductModel.js';
 import { accountsModel } from '../Models/AccountModel.js';
+import { categoriesModel } from '../Models/CategoryModel.js';
+import { isMissingInformationProduct } from '../../utils/isMissingInformationProduct.js';
 
 // {
 //     _id:
 //     storeId:
-//     categoryObject:
+//     categoryId:
 //     arrayPrice:
 //     name:
 //     isFeature:
@@ -19,8 +23,8 @@ export const createProduct = async (req, res) => {
     try {
         const newProductFromClient = req.body;
         if (isMissingInformationProduct(newProductFromClient)) {
-            return res.status(400).json({
-                statusCode: 400,
+            return res.status(401).json({
+                statusCode: 401,
                 message: 'Missing information product.',
                 ok: false,
                 data: null,
@@ -40,11 +44,11 @@ export const createProduct = async (req, res) => {
         const existProduct = await productsModel.findOne({
             name: { $regex: newProductFromClient.name, $options: 'i' },
             storeId: newProductFromClient.storeId,
-            'categoryObject.categoryId': newProductFromClient.categoryObject.categoryId,
+            categoryId: newProductFromClient.categoryId,
         });
         if (existProduct) {
-            return res.status(400).json({
-                statusCode: 400,
+            return res.status(401).json({
+                statusCode: 401,
                 message: 'Product name is already exist.',
                 ok: false,
                 data: null,
@@ -59,9 +63,9 @@ export const createProduct = async (req, res) => {
             statusCode: 200,
         });
     } catch (error) {
-        res.status(400).json({
+        res.status(500).json({
             data: error,
-            statusCode: 400,
+            statusCode: 500,
             message: 'Something went wrong. Create product failed.',
             ok: false,
         });
@@ -71,28 +75,56 @@ export const createProduct = async (req, res) => {
 
 export const getProduct = async (req, res) => {
     try {
-        const product = await productsModel.findOne({
-            _id: req.query._id,
-            storeId: req.query.storeId,
-        });
+        const product = await productsModel
+            .findOne({
+                _id: req.query._id,
+                storeId: req.query.storeId,
+            })
+            .populate('categoryId');
+
+        const listColor = await colorsModel
+            .find({
+                storeId: req.query.storeId,
+            })
+            .sort({ createdAt: -1 });
+        const listCategory = await categoriesModel
+            .find({
+                storeId: req.query.storeId,
+            })
+            .sort({ createdAt: -1 });
+        const listSize = await sizesModel
+            .find({
+                storeId: req.query.storeId,
+            })
+            .sort({ createdAt: -1 });
+
         if (!product) {
             return res.status(400).json({
-                data: null,
+                data: {
+                    listColor,
+                    listSize,
+                    listCategory,
+                },
                 statusCode: 400,
                 message: 'Product id or store id is wrong.',
                 ok: false,
             });
         }
         res.status(200).json({
-            data: product,
+            data: {
+                product,
+                listColor,
+                listSize,
+                listCategory,
+            },
             statusCode: 200,
             message: 'Get product success.',
             ok: true,
         });
     } catch (error) {
-        res.status(400).json({
+        res.status(500).json({
             data: error,
-            statusCode: 400,
+            statusCode: 500,
             message: 'Something went wrong. Get product failed.',
             ok: false,
         });
@@ -114,7 +146,8 @@ export const getAllProduct = async (req, res) => {
             .find({
                 storeId: req.query.storeId,
             })
-            .sort({ createdAt: -1 });
+            .sort({ createdAt: -1 })
+            .populate('categoryId');
         res.status(200).json({
             data: listProduct,
             statusCode: 200,
@@ -122,9 +155,9 @@ export const getAllProduct = async (req, res) => {
             ok: true,
         });
     } catch (error) {
-        res.status(400).json({
+        res.status(500).json({
             data: error,
-            statusCode: 400,
+            statusCode: 500,
             message: 'Something went wrong. Get products failed.',
             ok: false,
         });
@@ -135,8 +168,8 @@ export const updateProduct = async (req, res) => {
     try {
         const newProductFromClient = req.body;
         if (isMissingInformationProduct(newProductFromClient)) {
-            return res.status(400).json({
-                statusCode: 400,
+            return res.status(401).json({
+                statusCode: 401,
                 message: 'Missing information billboard .',
                 ok: false,
                 data: null,
@@ -161,8 +194,8 @@ export const updateProduct = async (req, res) => {
             storeId: newProductFromClient.storeId,
         });
         if (!existProduct) {
-            return res.status(400).json({
-                statusCode: 400,
+            return res.status(401).json({
+                statusCode: 401,
                 message: 'Product id or store id is wrong.',
                 ok: false,
                 data: null,
@@ -189,9 +222,9 @@ export const updateProduct = async (req, res) => {
             ok: true,
         });
     } catch (error) {
-        res.status(400).json({
+        res.status(500).json({
             data: error,
-            statusCode: 400,
+            statusCode: 500,
             message: 'Something went wrong. Update product failed.',
             ok: false,
         });
@@ -204,8 +237,8 @@ export const deleteProduct = async (req, res) => {
     const storeId = req.body.storeId;
     try {
         if (!productId || !storeId) {
-            return res.status(400).json({
-                statusCode: 400,
+            return res.status(401).json({
+                statusCode: 401,
                 message: 'Product id or store id  is missing.',
                 ok: false,
                 data: null,
@@ -222,7 +255,18 @@ export const deleteProduct = async (req, res) => {
                 data: null,
             });
         }
-
+        const existOrderConnectWithProduct = await ordersModel.findOne({
+            storeId,
+            listProductOrder: { $elemMatch: { _id: productId } },
+        });
+        if (existOrderConnectWithProduct) {
+            return res.status(401).json({
+                statusCode: 401,
+                message: 'This product is connecting with another order.',
+                ok: false,
+                data: null,
+            });
+        }
         const productDeleted = await productsModel.findOneAndDelete({
             _id: productId,
             storeId,
@@ -234,8 +278,8 @@ export const deleteProduct = async (req, res) => {
             statusCode: 200,
         });
     } catch (error) {
-        return res.status(400).json({
-            statusCode: 400,
+        return res.status(500).json({
+            statusCode: 500,
             message: 'Something went wrong. Delete product failed',
             ok: false,
             data: error,

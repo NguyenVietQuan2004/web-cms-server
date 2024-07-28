@@ -4,10 +4,10 @@ import { verifyLogin } from '../../utils/verifyLogin.js';
 
 const router = express();
 
-router.get('/', verifyLogin, getSize);
+router.get('/', getSize);
+router.get('/getall', getAllSize);
 router.put('/', verifyLogin, updateSize);
 router.post('/', verifyLogin, createSize);
 router.delete('/', verifyLogin, deleteSize);
-router.get('/getall', verifyLogin, getAllSize);
 
 export default router;

@@ -16,9 +16,10 @@ const Schema = new mongoose.Schema(
             type: Array,
             require: true,
         },
-        categoryObject: {
-            type: Object,
+        categoryId: {
+            type: String,
             require: true,
+            ref: 'categories',
         },
         arrayPrice: {
             type: Array,

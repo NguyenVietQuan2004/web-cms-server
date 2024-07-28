@@ -4,9 +4,9 @@ import { verifyLogin } from '../../utils/verifyLogin.js';
 const router = express();
 
 router.get('/', verifyLogin, getStore);
+router.get('/getall', verifyLogin, getAllStore);
 router.put('/', verifyLogin, updateStore);
 router.post('/', verifyLogin, createStore);
 router.delete('/', verifyLogin, deleteStore);
-router.get('/getall', verifyLogin, getAllStore);
 
 export default router;

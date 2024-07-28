@@ -1,6 +1,7 @@
 import { accountsModel } from '../Models/AccountModel.js';
 import { productsModel } from '../Models/ProductModel.js';
 import { categoriesModel } from '../Models/CategoryModel.js';
+import { billBoardsModel } from '../Models/BillBoardModel.js';
 
 // {
 //      _id:
@@ -15,8 +16,8 @@ export const createCategory = async (req, res) => {
     try {
         const newCategoryFromClient = req.body;
         if (!newCategoryFromClient.name || !newCategoryFromClient.storeId || !newCategoryFromClient.billboardId) {
-            return res.status(400).json({
-                statusCode: 400,
+            return res.status(401).json({
+                statusCode: 401,
                 message: 'Missing information category.',
                 ok: false,
                 data: null,
@@ -37,10 +38,9 @@ export const createCategory = async (req, res) => {
             name: newCategoryFromClient.name,
             storeId: newCategoryFromClient.storeId,
         });
-        console.log(categoryExist);
         if (categoryExist) {
-            return res.status(400).json({
-                statusCode: 400,
+            return res.status(401).json({
+                statusCode: 401,
                 message: 'Name category is already exist.',
                 ok: false,
                 data: null,
@@ -55,9 +55,9 @@ export const createCategory = async (req, res) => {
             statusCode: 200,
         });
     } catch (error) {
-        res.status(400).json({
+        res.status(500).json({
             data: error,
-            statusCode: 400,
+            statusCode: 500,
             message: 'Something went wrong. Create category failed.',
             ok: false,
         });
@@ -71,24 +71,34 @@ export const getCategory = async (req, res) => {
             _id: req.query._id,
             storeId: req.query.storeId,
         });
+        const listBillboard = await billBoardsModel
+            .find({
+                storeId: req.query.storeId,
+            })
+            .sort({ createdAt: -1 });
         if (!category) {
             return res.status(400).json({
-                data: null,
+                data: {
+                    listBillboard,
+                },
                 statusCode: 400,
                 message: 'Category id or storeId is wrong.',
                 ok: false,
             });
         }
         res.status(200).json({
-            data: category,
+            data: {
+                category,
+                listBillboard,
+            },
             statusCode: 200,
             message: 'Get category success.',
             ok: true,
         });
     } catch (error) {
-        res.status(400).json({
+        res.status(500).json({
             data: error,
-            statusCode: 400,
+            statusCode: 500,
             message: 'Something went wrong. Get category failed.',
             ok: false,
         });
@@ -110,7 +120,8 @@ export const getAllCategory = async (req, res) => {
             .find({
                 storeId: req.query.storeId,
             })
-            .sort({ createdAt: -1 });
+            .sort({ createdAt: -1 })
+            .populate('billboardId');
         res.status(200).json({
             data: listCategory,
             statusCode: 200,
@@ -118,9 +129,9 @@ export const getAllCategory = async (req, res) => {
             ok: true,
         });
     } catch (error) {
-        res.status(400).json({
+        res.status(500).json({
             data: error,
-            statusCode: 400,
+            statusCode: 500,
             message: 'Something went wrong. Get listCategory failed.',
             ok: false,
         });
@@ -136,8 +147,8 @@ export const updateCategory = async (req, res) => {
         const name = req.body.name;
 
         if (!name || !categoryId || !storeId || !billboardId) {
-            return res.status(400).json({
-                statusCode: 400,
+            return res.status(401).json({
+                statusCode: 401,
                 message: 'Missing information category .',
                 ok: false,
                 data: null,
@@ -159,8 +170,8 @@ export const updateCategory = async (req, res) => {
             storeId,
         });
         if (!existCategory) {
-            return res.status(400).json({
-                statusCode: 400,
+            return res.status(401).json({
+                statusCode: 401,
                 message: 'Category id or store id is wrong.',
                 ok: false,
                 data: null,
@@ -187,9 +198,9 @@ export const updateCategory = async (req, res) => {
             ok: true,
         });
     } catch (error) {
-        res.status(400).json({
+        res.status(500).json({
             data: error,
-            statusCode: 400,
+            statusCode: 500,
             message: 'Something went wrong. Update category failed.',
             ok: false,
         });
@@ -202,8 +213,8 @@ export const deleteCategory = async (req, res) => {
         const categoryId = req.body._id;
         const storeId = req.body.storeId;
         if (!categoryId || !storeId) {
-            return res.status(400).json({
-                statusCode: 400,
+            return res.status(401).json({
+                statusCode: 401,
                 message: 'Category information is missing.',
                 ok: false,
                 data: null,
@@ -222,11 +233,11 @@ export const deleteCategory = async (req, res) => {
         }
         const existProductConnectWithCategory = await productsModel.findOne({
             storeId,
-            'categoryObject.categoryId': categoryId,
+            'categoryId.categoryId': categoryId,
         });
         if (existProductConnectWithCategory) {
-            return res.status(400).json({
-                statusCode: 400,
+            return res.status(401).json({
+                statusCode: 401,
                 message:
                     'This category is connecting with another products. Please emty product in this category before.',
                 ok: false,
@@ -244,8 +255,8 @@ export const deleteCategory = async (req, res) => {
             statusCode: 200,
         });
     } catch (error) {
-        return res.status(400).json({
-            statusCode: 400,
+        return res.status(500).json({
+            statusCode: 500,
             message: 'Something went wrong. Delete category failed',
             ok: false,
             data: error,

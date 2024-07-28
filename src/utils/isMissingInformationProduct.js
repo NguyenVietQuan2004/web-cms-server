@@ -3,9 +3,9 @@ export const isMissingInformationProduct = (product) => {
     const name = product.name;
     const storeId = product.storeId;
     const arrayPrice = product.arrayPrice;
-    const categoryObject = product.categoryObject;
+    const categoryId = product.categoryId;
 
-    if (!images || !name || !storeId || !arrayPrice || !categoryObject) {
+    if (!images || !name || !storeId || !arrayPrice || !categoryId) {
         return true;
     }
     return false;

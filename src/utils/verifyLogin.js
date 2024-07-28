@@ -11,7 +11,6 @@ export const verifyLogin = (req, res, next) => {
             next();
         });
     } else {
-        return res.status(403).json('You are not authenticated!');
+        return res.status(403).json('You are not authenticated!!');
     }
 };
-// ko bt no nhan sessionToken hay accesstoken

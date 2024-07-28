@@ -1,7 +1,6 @@
 import { accountsModel } from '../Models/AccountModel.js';
 import { billBoardsModel } from '../Models/BillBoardModel.js';
 import { categoriesModel } from '../Models/CategoryModel.js';
-import { storesModel } from '../Models/StoreModel.js';
 
 // {
 //      _id:
@@ -16,8 +15,8 @@ export const createBillboard = async (req, res) => {
     try {
         const newBillboardFromClient = req.body;
         if (!newBillboardFromClient.label || !newBillboardFromClient.image || !newBillboardFromClient.storeId) {
-            return res.status(400).json({
-                statusCode: 400,
+            return res.status(401).json({
+                statusCode: 401,
                 message: 'Missing information billboard.',
                 ok: false,
                 data: null,
@@ -43,10 +42,10 @@ export const createBillboard = async (req, res) => {
             statusCode: 200,
         });
     } catch (error) {
-        res.status(400).json({
+        res.status(500).json({
             data: error,
-            statusCode: 400,
-            message: 'Something   went wrong. Create billboard failed.',
+            statusCode: 500,
+            message: 'Something went wrong. Create billboard failed.',
             ok: false,
         });
     }
@@ -74,9 +73,9 @@ export const getBillboard = async (req, res) => {
             ok: true,
         });
     } catch (error) {
-        res.status(400).json({
+        res.status(500).json({
             data: error,
-            statusCode: 400,
+            statusCode: 500,
             message: 'Something went wrong. Get billboard failed.',
             ok: false,
         });
@@ -106,9 +105,9 @@ export const getAllBillboard = async (req, res) => {
             ok: true,
         });
     } catch (error) {
-        res.status(400).json({
+        res.status(500).json({
             data: error,
-            statusCode: 400,
+            statusCode: 500,
             message: 'Something went wrong. Get billboards failed.',
             ok: false,
         });
@@ -124,8 +123,8 @@ export const updateBillboard = async (req, res) => {
         const newImage = req.body.image;
 
         if (!newLabel || !newImage || !storeId) {
-            return res.status(400).json({
-                statusCode: 400,
+            return res.status(401).json({
+                statusCode: 401,
                 message: 'Missing information billboard .',
                 ok: false,
                 data: null,
@@ -147,8 +146,8 @@ export const updateBillboard = async (req, res) => {
             storeId,
         });
         if (!existBillboard) {
-            return res.status(400).json({
-                statusCode: 400,
+            return res.status(401).json({
+                statusCode: 401,
                 message: 'Billboard id or store id is wrong.',
                 ok: false,
                 data: null,
@@ -175,9 +174,9 @@ export const updateBillboard = async (req, res) => {
             ok: true,
         });
     } catch (error) {
-        res.status(400).json({
+        res.status(500).json({
             data: error,
-            statusCode: 400,
+            statusCode: 500,
             message: 'Something went wrong. Update billboard failed.',
             ok: false,
         });
@@ -190,8 +189,8 @@ export const deleteBillboard = async (req, res) => {
         const billboardId = req.body._id;
         const storeId = req.body.storeId;
         if (!billboardId || !storeId) {
-            return res.status(400).json({
-                statusCode: 400,
+            return res.status(401).json({
+                statusCode: 401,
                 message: 'Billboard information is missing.',
                 ok: false,
                 data: null,
@@ -212,8 +211,8 @@ export const deleteBillboard = async (req, res) => {
             billboardId,
         });
         if (existCategories) {
-            return res.status(400).json({
-                statusCode: 400,
+            return res.status(401).json({
+                statusCode: 401,
                 message: 'This billboard is connecting with another category.',
                 ok: false,
                 data: null,
@@ -230,8 +229,8 @@ export const deleteBillboard = async (req, res) => {
             statusCode: 200,
         });
     } catch (error) {
-        return res.status(400).json({
-            statusCode: 400,
+        return res.status(500).json({
+            statusCode: 500,
             message: 'Something went wrong. Delete billboard failed',
             ok: false,
             data: error,
