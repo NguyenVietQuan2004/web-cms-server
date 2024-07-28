@@ -36,6 +36,7 @@ export const createColor = async (req, res) => {
         }
         const colorExist = await colorsModel.findOne({
             name: newColorFromClient.name,
+            storeId: newColorFromClient.storeId,
         });
         if (colorExist) {
             return res.status(401).json({

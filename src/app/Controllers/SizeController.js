@@ -36,6 +36,7 @@ export const createSize = async (req, res) => {
         }
         const sizeExist = await sizesModel.findOne({
             name: newSizeFromClient.name,
+            storeId: newSizeFromClient.storeId,
         });
         if (sizeExist) {
             return res.status(401).json({
