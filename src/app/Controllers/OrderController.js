@@ -1,4 +1,5 @@
 import { ordersModel } from '../Models/OrderModel.js';
+import { productsModel } from '../Models/ProductModel.js';
 import { accountsModel } from '../Models/AccountModel.js';
 
 // {
@@ -66,20 +67,20 @@ export const createOrder = async (req, res) => {
 
 export const getAllOrder = async (req, res) => {
     // const order = await ordersModel({
-    //     storeId: '983cb675-2cc0-4c96-93a8-68e627f206bb',
+    //     storeId: '0b350ab1-d3b9-4ec5-9c22-f4e43e06d15f',
     //     listProductOrder: [
     //         {
-    //             _id: 'c4933319-91ba-4ac0-8411-305875a62a66',
-    //             size: 'XS',
-    //             colors: ['yellow'],
+    //             _id: '4fb17f35-11e0-4a82-b5fd-2e09dfcca97c',
+    //             size: 'L',
+    //             colors: ['red'],
     //         },
     //         {
-    //             _id: 'a39403e0-8baa-474a-a9a2-12a97eacf5df',
-    //             size: 'XL',
-    //             colors: ['yellow', 'blue'],
+    //             _id: 'f593c812-b79c-480b-a61b-b0037ede5a13',
+    //             size: 'L',
+    //             colors: ['red'],
     //         },
     //     ],
-    //     isPaid: false,
+    //     isPaid: true,
     //     phone: '0763948610',
     //     address: 'Thoi an o mon can tho',
     // });
@@ -225,6 +226,62 @@ export const deleteOrder = async (req, res) => {
             message: 'Something went wrong. Delete order failed',
             ok: false,
             data: error,
+        });
+    }
+};
+
+export const overviewOrder = async (req, res) => {
+    try {
+        const storeId = req.query.storeId;
+        if (!storeId) {
+            return res.status(401).json({
+                statusCode: 401,
+                message: 'Store id  is missing.',
+                ok: false,
+                data: null,
+            });
+        }
+        const userExist = await accountsModel.findOne({
+            id: req.user,
+        });
+
+        if (!userExist) {
+            return res.status(403).json({
+                statusCode: 403,
+                message: 'You are not authenticate.',
+                ok: false,
+                data: null,
+            });
+        }
+
+        const listOrderPaid = await ordersModel
+            .find({
+                storeId,
+                isPaid: true,
+            })
+            .populate('listProductOrder._id');
+        console.log(listOrderPaid);
+
+        const countProductsInStock = await productsModel.countDocuments({
+            storeId,
+            isArchive: false,
+        });
+
+        res.status(200).json({
+            data: {
+                listOrderPaid,
+                countProductsInStock,
+            },
+            statusCode: 200,
+            message: 'Get overview order success',
+            ok: true,
+        });
+    } catch (error) {
+        res.status(500).json({
+            data: error,
+            statusCode: 500,
+            message: 'Something went wrong. Get overview failed.',
+            ok: false,
         });
     }
 };
