@@ -260,7 +260,6 @@ export const overviewOrder = async (req, res) => {
                 isPaid: true,
             })
             .populate('listProductOrder._id');
-        console.log(listOrderPaid);
 
         const countProductsInStock = await productsModel.countDocuments({
             storeId,

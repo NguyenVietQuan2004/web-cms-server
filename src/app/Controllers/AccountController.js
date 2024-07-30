@@ -140,3 +140,22 @@ export const loginWithFirebase = async (req, res) => {
         });
     }
 };
+export const signOut = async (req, res) => {
+    try {
+        res.setHeader('Set-Cookie', `accessToken=; Path=/; HttpOnly; ; Secure; Partitioned; SameSite=None`);
+        res.status(200).json({
+            data: null,
+            message: 'Logout success.',
+            ok: true,
+            statusCode: 200,
+        });
+    } catch (error) {
+        res.setHeader('Set-Cookie', `accessToken; Path=/; HttpOnly; ; Secure; Partitioned; SameSite=None`);
+        res.status(500).json({
+            data: error,
+            statusCode: 500,
+            message: 'Something went wrong, automatic sign out .',
+            ok: false,
+        });
+    }
+};
