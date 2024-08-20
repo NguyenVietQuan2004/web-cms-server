@@ -1,7 +1,7 @@
 import { ordersModel } from '../Models/OrderModel.js';
 import { productsModel } from '../Models/ProductModel.js';
 import { accountsModel } from '../Models/AccountModel.js';
-
+import { v4 as uuidv4 } from 'uuid';
 // {
 //     _id:
 //     storeId:
@@ -12,22 +12,18 @@ import { accountsModel } from '../Models/AccountModel.js';
 //             color: 'blue',
 //         },
 //      ]
-//     phone
-//     adress
+//     phone:
+//     address:
 //     createAt:
-//     updateAt
+//     updateAt:
+//     isPaid:
 // }
 
 // [POST] /order
 export const createOrder = async (req, res) => {
     try {
         const newOrderFromClient = req.body;
-        if (
-            !newOrderFromClient.phone ||
-            !newOrderFromClient.address ||
-            !newOrderFromClient.storeId ||
-            !newOrderFromClient.listProductOrder
-        ) {
+        if (!newOrderFromClient.storeId || !newOrderFromClient.listProductOrder.length) {
             return res.status(401).json({
                 statusCode: 401,
                 message: 'Missing information order.',
@@ -35,17 +31,7 @@ export const createOrder = async (req, res) => {
                 data: null,
             });
         }
-        const userExist = await accountsModel.findOne({
-            id: req.user,
-        });
-        if (!userExist) {
-            return res.status(403).json({
-                statusCode: 403,
-                message: 'You are not authenticate.',
-                ok: false,
-                data: null,
-            });
-        }
+
         const order = await ordersModel(newOrderFromClient);
         await order.save();
         res.status(200).json({
@@ -67,17 +53,17 @@ export const createOrder = async (req, res) => {
 
 export const getAllOrder = async (req, res) => {
     // const order = await ordersModel({
-    //     storeId: '0b350ab1-d3b9-4ec5-9c22-f4e43e06d15f',
+    //     storeId: '203f904e-e8e5-434a-9f22-b339029556f6',
     //     listProductOrder: [
     //         {
-    //             _id: '4fb17f35-11e0-4a82-b5fd-2e09dfcca97c',
+    //             _id: '9621d2ce-5414-4e9b-a9e1-8716cb1ae19c',
     //             size: 'L',
-    //             colors: ['red'],
+    //             color: 'red',
     //         },
     //         {
-    //             _id: 'f593c812-b79c-480b-a61b-b0037ede5a13',
+    //             _id: '2a99907c-c0f4-493d-a548-b340145d48b5',
     //             size: 'L',
-    //             colors: ['red'],
+    //             color: 'black',
     //         },
     //     ],
     //     isPaid: true,
@@ -100,7 +86,10 @@ export const getAllOrder = async (req, res) => {
                 storeId: req.query.storeId,
             })
             .sort({ createdAt: -1 })
-            .populate('listProductOrder._id');
+            .populate({
+                path: 'listProductOrder._id',
+                match: { storeId: req.query.storeId },
+            });
         // cho nay tra ve mang product
         res.status(200).json({
             data: listModel,
@@ -119,70 +108,80 @@ export const getAllOrder = async (req, res) => {
 };
 // [PUT] /order
 export const updateOrder = async (req, res) => {
-    // try {
-    //     const orderId = req.body._id;
-    //     const listProductOrder = req.body.listProductOrder;
-    //     const phone = req.body.phone;
-    //     const address = req.body.address;
-    //     if (!orderId || !listProductOrder || !phone || !address) {
-    //         return res.status(401).json({
-    //             statusCode: 401,
-    //             message: 'Missing information order .',
-    //             ok: false,
-    //             data: null,
-    //         });
-    //     }
-    //     const userExist = await accountsModel.findOne({
-    //         id: req.user,
-    //     });
-    //     if (!userExist) {
-    //         return res.status(403).json({
-    //             statusCode: 403,
-    //             message: 'You are not authenticate.',
-    //             ok: false,
-    //             data: null,
-    //         });
-    //     }
-    //     const existOrder = await ordersModel.findOne({
-    //         _id: orderId,
-    //         storeId,
-    //     });
-    //     if (!existOrder) {
-    //         return res.status(401).json({
-    //             statusCode: 401,
-    //             message: 'Order id or store id is wrong.',
-    //             ok: false,
-    //             data: null,
-    //         });
-    //     }
-    //     const newOrderUpdate = await ordersModel.findOneAndUpdate(
-    //         {
-    //             _id: orderId,
-    //             storeId,
-    //         },
-    //         {
-    //             phone,
-    //             address,
-    //             listProductOrder,
-    //         },
-    //         {
-    //             new: true,
-    //         },
-    //     );
-    //     res.status(200).json({
-    //         data: newOrderUpdate,
-    //         statusCode: 200,
-    //         message: 'Update order success.',
-    //         ok: true,
-    //     });
-    // } catch (error) {
-    //     res.status(401).json({
-    //         data: error,
-    //         statusCode: 401,
-    //         message: 'Something went wrong. Update order failed.',
-    //         ok: false,
-    //     });
-    // }
+    try {
+        const orderId = req.body._id;
+        const phone = req.body.phone;
+        const address = req.body.address;
+        const isPaid = req.body.isPaid;
+
+        if (!orderId) {
+            return res.status(401).json({
+                statusCode: 401,
+                message: 'Missing information order .',
+                ok: false,
+                data: null,
+            });
+        }
+
+        const existOrder = await ordersModel.findOne({
+            _id: orderId,
+        });
+        if (!existOrder) {
+            return res.status(401).json({
+                statusCode: 401,
+                message: 'Order id or store id is wrong.',
+                ok: false,
+                data: null,
+            });
+        }
+        const newOrderUpdate = await ordersModel.findOneAndUpdate(
+            {
+                _id: orderId,
+            },
+            {
+                isPaid,
+                phone,
+                address,
+            },
+            {
+                new: true,
+            },
+        );
+        // nếu đã thanh toán thì trừ số lượng của product
+        if (isPaid) {
+            console.log(newOrderUpdate);
+            const listProductOrder = newOrderUpdate.listProductOrder;
+            for (const i = 0; i < listProductOrder.length; i++) {
+                const existProduct = await productsModel.findOne({
+                    storeId: newOrderUpdate.storeId,
+                    _id: listProductOrder[i]._id,
+                });
+                await productsModel.findOneAndUpdate(
+                    {
+                        storeId: newOrderUpdate.storeId,
+                        _id: listProductOrder[i]._id,
+                    },
+                    {
+                        // upadte lai so luong cua size do
+                        $set: '',
+                    },
+                );
+            }
+        }
+        res.status(200).json({
+            data: newOrderUpdate,
+            statusCode: 200,
+            message: 'Update order success.',
+            ok: true,
+        });
+    } catch (error) {
+        res.status(401).json({
+            data: error,
+            statusCode: 401,
+            message: 'Something went wrong. Update order failed.',
+            ok: false,
+        });
+    }
 };
 // [DELETE] /order
 
@@ -260,7 +259,6 @@ export const overviewOrder = async (req, res) => {
                 isPaid: true,
             })
             .populate('listProductOrder._id');
-
         const countProductsInStock = await productsModel.countDocuments({
             storeId,
             isArchive: false,

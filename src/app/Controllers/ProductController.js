@@ -6,11 +6,17 @@ import { accountsModel } from '../Models/AccountModel.js';
 import { categoriesModel } from '../Models/CategoryModel.js';
 import { isMissingInformationProduct } from '../../utils/isMissingInformationProduct.js';
 
+import { v4 as uuidv4 } from 'uuid';
+
 // {
 //     _id:
 //     storeId:
 //     categoryId:
 //     arrayPrice:
+//              [
+//              {
+//                  price: 4, amount:10}
+//      ]
 //     name:
 //     isFeature:
 //     isArchive:
@@ -97,13 +103,18 @@ export const getProduct = async (req, res) => {
                 storeId: req.query.storeId,
             })
             .sort({ createdAt: -1 });
-
+        const productsRelative = await productsModel
+            .find({
+                categoryId: req.query.categoryId,
+            })
+            .populate('categoryId');
         if (!product) {
             return res.status(400).json({
                 data: {
                     listColor,
                     listSize,
                     listCategory,
+                    productsRelative,
                 },
                 statusCode: 400,
                 message: 'Product id or store id is wrong.',
@@ -116,6 +127,7 @@ export const getProduct = async (req, res) => {
                 listColor,
                 listSize,
                 listCategory,
+                productsRelative,
             },
             statusCode: 200,
             message: 'Get product success.',
@@ -133,23 +145,77 @@ export const getProduct = async (req, res) => {
 // [GET] /product/getall
 
 export const getAllProduct = async (req, res) => {
+    // const product = await productsModel({
+    //     storeId: '203f904e-e8e5-434a-9f22-b339029556f6',
+    //     images: ['https://res.cloudinary.com/dvyi5jxrm/image/upload/v1723339667/ibatfwoa7qo2iz40rwjv.jpg'],
+    //     categoryId: {
+    //         _id: '094dd029-63fa-4f13-a9d6-79b3480d0da7',
+    //         name: 'category2',
+    //         storeId: '203f904e-e8e5-434a-9f22-b339029556f6',
+    //         billboardId: '1e071c61-375a-41f1-bae9-4179a39a1b5c',
+    //         createdAt: '2024-07-28T04:27:19.671Z',
+    //         updatedAt: '2024-07-28T04:27:19.671Z',
+    //         __v: 0,
+    //     },
+    //     arrayPrice: [
+    //         { size: 'S', price: 1, colors: ['black', 'pink'] },
+    //         { size: 'L', price: 2, colors: ['red', 'black'] },
+    //     ],
+    //     isFeature: true,
+    //     isArchive: false,
+    // });
+    // await product.save();
+
+    const limit = parseInt(req.query.limit) || 100;
+    const page = parseInt(req.query.page) || 1;
+    const skip = limit * (page - 1);
     try {
         if (!req.query.storeId) {
-            res.status(200).json({
+            return res.status(401).json({
                 data: null,
                 statusCode: 200,
                 message: 'Store id is missing.',
                 ok: true,
             });
         }
+        const query = {
+            storeId: req.query.storeId,
+        };
+        if (req.query.categoryId) {
+            query['categoryId'] = req.query.categoryId;
+        }
+        const arrayPriceQuery = {};
+        if (req.query.sizeId) {
+            const size = await sizesModel.findOne({
+                _id: req.query.sizeId,
+            });
+            arrayPriceQuery.size = size.value;
+        }
+        if (req.query.colorId) {
+            const color = await colorsModel.findOne({
+                _id: req.query.colorId,
+            });
+            arrayPriceQuery.colors = { $in: [color.value] };
+        }
+        if (req.query.isFeature) {
+            query['isFeature'] = true;
+        }
+        if (req.query.isArchive) {
+            query['isArchive'] = false;
+        }
+        query['arrayPrice'] = { $elemMatch: arrayPriceQuery };
+        const totalProduct = await productsModel.countDocuments(query);
         const listProduct = await productsModel
-            .find({
-                storeId: req.query.storeId,
-            })
+            .find(query)
             .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit)
             .populate('categoryId');
         res.status(200).json({
-            data: listProduct,
+            data: {
+                listProduct,
+                totalProduct,
+            },
             statusCode: 200,
             message: 'Get list product success',
             ok: true,

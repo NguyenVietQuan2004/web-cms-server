@@ -34,7 +34,7 @@ export const createColor = async (req, res) => {
                 data: null,
             });
         }
-        const colorExist = await colorsModel.findOne({
+        let colorExist = await colorsModel.findOne({
             name: newColorFromClient.name,
             storeId: newColorFromClient.storeId,
         });
@@ -42,6 +42,19 @@ export const createColor = async (req, res) => {
             return res.status(401).json({
                 statusCode: 401,
                 message: 'Color name is already exist.',
+                ok: false,
+                data: null,
+            });
+        }
+
+        colorExist = await colorsModel.findOne({
+            value: newColorFromClient.value,
+            storeId: newColorFromClient.storeId,
+        });
+        if (colorExist) {
+            return res.status(401).json({
+                statusCode: 401,
+                message: 'Color value is already exist.',
                 ok: false,
                 data: null,
             });

@@ -21,13 +21,19 @@ const Schema = new mongoose.Schema(
             type: Boolean,
             require: true,
         },
+        amount: {
+            type: Number,
+            require: true,
+        },
         phone: {
             type: String,
             require: true,
+            default: '',
         },
         address: {
             type: String,
             require: true,
+            default: '',
         },
     },
     { timestamps: true },

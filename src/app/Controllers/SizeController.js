@@ -34,7 +34,7 @@ export const createSize = async (req, res) => {
                 data: null,
             });
         }
-        const sizeExist = await sizesModel.findOne({
+        let sizeExist = await sizesModel.findOne({
             name: newSizeFromClient.name,
             storeId: newSizeFromClient.storeId,
         });
@@ -42,6 +42,18 @@ export const createSize = async (req, res) => {
             return res.status(401).json({
                 statusCode: 401,
                 message: 'Size name is already exist.',
+                ok: false,
+                data: null,
+            });
+        }
+        sizeExist = await sizesModel.findOne({
+            value: newSizeFromClient.value,
+            storeId: newSizeFromClient.storeId,
+        });
+        if (sizeExist) {
+            return res.status(401).json({
+                statusCode: 401,
+                message: 'Size value is already exist.',
                 ok: false,
                 data: null,
             });

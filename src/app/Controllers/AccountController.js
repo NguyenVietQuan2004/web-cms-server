@@ -71,7 +71,6 @@ export const login = async (req, res) => {
             'Set-Cookie',
             `accessToken=${token}; Path=/; HttpOnly; Expires=${oneYearFromNow.toUTCString()}; Secure; Partitioned; SameSite=None`,
         );
-
         res.status(200).json({
             data: {
                 userName: user.userName,

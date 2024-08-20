@@ -1,4 +1,5 @@
 import jwt from 'jsonwebtoken';
+import { signOut } from '../app/Controllers/AccountController.js';
 export const verifyLogin = (req, res, next) => {
     const accessToken = req.cookies.sessionToken || req.cookies.accessToken;
     if (accessToken) {
@@ -7,7 +8,7 @@ export const verifyLogin = (req, res, next) => {
                 return res.status(403).json('Token is not valid');
             }
             req.user = user;
-            // user: name, id,photoURL
+            // user: id
             next();
         });
     } else {

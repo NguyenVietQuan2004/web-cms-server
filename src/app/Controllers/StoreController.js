@@ -4,6 +4,7 @@ import { productsModel } from '../Models/ProductModel.js';
 import { categoriesModel } from '../Models/CategoryModel.js';
 import { billBoardsModel } from '../Models/BillBoardModel.js';
 import { ordersModel } from '../Models/OrderModel.js';
+import { signOut } from './AccountController.js';
 
 // {
 //     _id:
@@ -36,6 +37,7 @@ export const createStore = async (req, res) => {
                 data: null,
             });
         }
+
         const nameExist = await storesModel.findOne({
             name: newStoreFromClient.name,
             userId: req.user,
@@ -92,14 +94,15 @@ export const getAllStore = async (req, res) => {
         });
     }
 };
-// [GET] /store/:storeId
+// [GET] /store?_id=storeId
 
 export const getStore = async (req, res) => {
+    const storeId = req.query._id;
     try {
         const store = await storesModel
             .findOne({
                 userId: req.user,
-                _id: req.query._id,
+                _id: storeId,
             })
             .select('-userId');
         if (!store) {
