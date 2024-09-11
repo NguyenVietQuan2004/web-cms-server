@@ -36,17 +36,7 @@ export const createProduct = async (req, res) => {
                 data: null,
             });
         }
-        const userExist = await accountsModel.findOne({
-            id: req.user,
-        });
-        if (!userExist) {
-            return res.status(403).json({
-                statusCode: 403,
-                message: 'You are not authenticate.',
-                ok: false,
-                data: null,
-            });
-        }
+
         const existProduct = await productsModel.findOne({
             name: { $regex: newProductFromClient.name, $options: 'i' },
             storeId: newProductFromClient.storeId,
@@ -103,11 +93,32 @@ export const getProduct = async (req, res) => {
                 storeId: req.query.storeId,
             })
             .sort({ createdAt: -1 });
-        const productsRelative = await productsModel
-            .find({
-                categoryId: req.query.categoryId,
-            })
-            .populate('categoryId');
+
+        const productsRelative = await productsModel.aggregate([
+            {
+                $match: { categoryId: req.query.categoryId },
+            },
+            {
+                $sample: { size: 10 },
+            },
+            {
+                $lookup: {
+                    from: 'categories',
+                    localField: 'categoryId',
+                    foreignField: '_id',
+                    as: 'category',
+                },
+            },
+            {
+                $unwind: '$category',
+            },
+            {
+                $addFields: { categoryId: '$category' },
+            },
+            {
+                $project: { category: 0 },
+            },
+        ]);
         if (!product) {
             return res.status(400).json({
                 data: {
@@ -145,32 +156,18 @@ export const getProduct = async (req, res) => {
 // [GET] /product/getall
 
 export const getAllProduct = async (req, res) => {
-    // const product = await productsModel({
-    //     storeId: '203f904e-e8e5-434a-9f22-b339029556f6',
-    //     images: ['https://res.cloudinary.com/dvyi5jxrm/image/upload/v1723339667/ibatfwoa7qo2iz40rwjv.jpg'],
-    //     categoryId: {
-    //         _id: '094dd029-63fa-4f13-a9d6-79b3480d0da7',
-    //         name: 'category2',
-    //         storeId: '203f904e-e8e5-434a-9f22-b339029556f6',
-    //         billboardId: '1e071c61-375a-41f1-bae9-4179a39a1b5c',
-    //         createdAt: '2024-07-28T04:27:19.671Z',
-    //         updatedAt: '2024-07-28T04:27:19.671Z',
-    //         __v: 0,
-    //     },
-    //     arrayPrice: [
-    //         { size: 'S', price: 1, colors: ['black', 'pink'] },
-    //         { size: 'L', price: 2, colors: ['red', 'black'] },
-    //     ],
-    //     isFeature: true,
-    //     isArchive: false,
-    // });
-    // await product.save();
-
     const limit = parseInt(req.query.limit) || 100;
     const page = parseInt(req.query.page) || 1;
     const skip = limit * (page - 1);
+    const { storeId, categoryId, colorId, sizeId, isArchive, sortBy, value } = req.query;
     try {
-        if (!req.query.storeId) {
+        const size = await sizesModel.findOne({
+            _id: sizeId,
+        });
+        const color = await colorsModel.findOne({
+            _id: colorId,
+        });
+        if (!storeId) {
             return res.status(401).json({
                 data: null,
                 statusCode: 200,
@@ -178,46 +175,76 @@ export const getAllProduct = async (req, res) => {
                 ok: true,
             });
         }
-        const query = {
-            storeId: req.query.storeId,
-        };
-        if (req.query.categoryId) {
-            query['categoryId'] = req.query.categoryId;
-        }
+        let listProduct;
+        const query = { storeId };
         const arrayPriceQuery = {};
-        if (req.query.sizeId) {
-            const size = await sizesModel.findOne({
-                _id: req.query.sizeId,
-            });
-            arrayPriceQuery.size = size.value;
-        }
-        if (req.query.colorId) {
-            const color = await colorsModel.findOne({
-                _id: req.query.colorId,
-            });
-            arrayPriceQuery.colors = { $in: [color.value] };
-        }
-        if (req.query.isFeature) {
-            query['isFeature'] = true;
-        }
-        if (req.query.isArchive) {
-            query['isArchive'] = false;
-        }
+
+        if (value) query.name = { $regex: new RegExp(value, 'i') };
+        if (categoryId) query['categoryId'] = categoryId;
+        if (sizeId) arrayPriceQuery.size = size.value;
+        if (colorId) arrayPriceQuery.colors = { $in: [color.value] };
+        if (sortBy === 'feature') query.isFeature = true;
+        if (isArchive) query.isArchive = false;
+
         query['arrayPrice'] = { $elemMatch: arrayPriceQuery };
+
+        if (sortBy === 'newest') {
+            listProduct = await productsModel
+                .find(query)
+                .sort({ createdAt: -1 })
+                .skip(skip)
+                .limit(limit)
+                .populate('categoryId');
+        } else if (sortBy === 'asc' || sortBy === 'desc') {
+            const sortOrder = sortBy === 'desc' ? -1 : 1;
+            listProduct = await productsModel.aggregate([
+                { $match: query },
+                { $addFields: { firstPrice: { $arrayElemAt: ['$arrayPrice.price', 0] } } },
+                { $sort: { firstPrice: sortOrder } },
+                { $skip: skip },
+                { $limit: limit },
+                {
+                    $lookup: {
+                        from: 'categories',
+                        localField: 'categoryId',
+                        foreignField: '_id',
+                        as: 'category',
+                    },
+                },
+                {
+                    $unwind: '$category',
+                },
+                {
+                    $addFields: { categoryId: '$category' },
+                },
+                {
+                    $project: { category: 0, firstPrice: 0 },
+                },
+            ]);
+        } else {
+            listProduct = await productsModel.find(query).skip(skip).limit(limit).populate('categoryId');
+        }
+
         const totalProduct = await productsModel.countDocuments(query);
-        const listProduct = await productsModel
-            .find(query)
-            .sort({ createdAt: -1 })
-            .skip(skip)
-            .limit(limit)
-            .populate('categoryId');
+        const listColor = await colorsModel
+            .find({
+                storeId,
+            })
+            .sort({ createdAt: -1 });
+        const listSize = await sizesModel
+            .find({
+                storeId,
+            })
+            .sort({ createdAt: -1 });
         res.status(200).json({
             data: {
                 listProduct,
                 totalProduct,
+                listColor,
+                listSize,
             },
             statusCode: 200,
-            message: 'Get list product success',
+            message: 'Get list product success.',
             ok: true,
         });
     } catch (error) {
@@ -237,19 +264,6 @@ export const updateProduct = async (req, res) => {
             return res.status(401).json({
                 statusCode: 401,
                 message: 'Missing information billboard .',
-                ok: false,
-                data: null,
-            });
-        }
-
-        const userExist = await accountsModel.findOne({
-            id: req.user,
-        });
-
-        if (!userExist) {
-            return res.status(403).json({
-                statusCode: 403,
-                message: 'You are not authenticate.',
                 ok: false,
                 data: null,
             });
@@ -310,17 +324,7 @@ export const deleteProduct = async (req, res) => {
                 data: null,
             });
         }
-        const userExist = await accountsModel.findOne({
-            id: req.user,
-        });
-        if (!userExist) {
-            return res.status(403).json({
-                statusCode: 403,
-                message: 'You are not authenticate.',
-                ok: false,
-                data: null,
-            });
-        }
+
         const existOrderConnectWithProduct = await ordersModel.findOne({
             storeId,
             listProductOrder: { $elemMatch: { _id: productId } },
@@ -347,6 +351,30 @@ export const deleteProduct = async (req, res) => {
         return res.status(500).json({
             statusCode: 500,
             message: 'Something went wrong. Delete product failed',
+            ok: false,
+            data: error,
+        });
+    }
+};
+
+export const getAllProductById = async (req, res) => {
+    try {
+        const listIdProduct = req.body.listIdProduct;
+        const listProduct = await productsModel
+            .find({
+                _id: { $in: listIdProduct },
+            })
+            .populate('categoryId');
+        res.status(200).json({
+            data: { listProduct },
+            message: 'Get all product by id success.',
+            ok: true,
+            statusCode: 200,
+        });
+    } catch (error) {
+        return res.status(500).json({
+            statusCode: 500,
+            message: 'Something went wrong. Get all product by id failed',
             ok: false,
             data: error,
         });

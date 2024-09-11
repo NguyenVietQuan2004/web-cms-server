@@ -22,17 +22,6 @@ export const createBillboard = async (req, res) => {
                 data: null,
             });
         }
-        const userExist = await accountsModel.findOne({
-            id: req.user,
-        });
-        if (!userExist) {
-            return res.status(403).json({
-                statusCode: 403,
-                message: 'You are not authenticate.',
-                ok: false,
-                data: null,
-            });
-        }
         const billboard = await billBoardsModel(newBillboardFromClient);
         await billboard.save();
         res.status(200).json({
@@ -130,17 +119,6 @@ export const updateBillboard = async (req, res) => {
                 data: null,
             });
         }
-        const userExist = await accountsModel.findOne({
-            id: req.user,
-        });
-        if (!userExist) {
-            return res.status(403).json({
-                statusCode: 403,
-                message: 'You are not authenticate.',
-                ok: false,
-                data: null,
-            });
-        }
         const existBillboard = await billBoardsModel.findOne({
             _id: billboardId,
             storeId,
@@ -192,17 +170,6 @@ export const deleteBillboard = async (req, res) => {
             return res.status(401).json({
                 statusCode: 401,
                 message: 'Billboard information is missing.',
-                ok: false,
-                data: null,
-            });
-        }
-        const userExist = await accountsModel.findOne({
-            id: req.user,
-        });
-        if (!userExist) {
-            return res.status(403).json({
-                statusCode: 403,
-                message: 'You are not authenticate.',
                 ok: false,
                 data: null,
             });

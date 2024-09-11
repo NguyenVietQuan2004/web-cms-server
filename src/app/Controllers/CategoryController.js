@@ -26,14 +26,6 @@ export const createCategory = async (req, res) => {
         const userExist = await accountsModel.findOne({
             id: req.user,
         });
-        if (!userExist) {
-            return res.status(403).json({
-                statusCode: 403,
-                message: 'You are not authenticate.',
-                ok: false,
-                data: null,
-            });
-        }
         const categoryExist = await categoriesModel.findOne({
             name: newCategoryFromClient.name,
             storeId: newCategoryFromClient.storeId,
@@ -157,14 +149,7 @@ export const updateCategory = async (req, res) => {
         const userExist = await accountsModel.findOne({
             id: req.user,
         });
-        if (!userExist) {
-            return res.status(403).json({
-                statusCode: 403,
-                message: 'You are not authenticate.',
-                ok: false,
-                data: null,
-            });
-        }
+
         const existCategory = await categoriesModel.findOne({
             _id: categoryId,
             storeId,
@@ -220,17 +205,7 @@ export const deleteCategory = async (req, res) => {
                 data: null,
             });
         }
-        const userExist = await accountsModel.findOne({
-            id: req.user,
-        });
-        if (!userExist) {
-            return res.status(403).json({
-                statusCode: 403,
-                message: 'You are not authenticate.',
-                ok: false,
-                data: null,
-            });
-        }
+
         const existProductConnectWithCategory = await productsModel.findOne({
             storeId,
             'categoryId.categoryId': categoryId,

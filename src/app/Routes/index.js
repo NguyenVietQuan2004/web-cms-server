@@ -6,6 +6,7 @@ import ProductRoutes from './ProductRoutes.js';
 import AccountRoutes from './AccountRoutes.js';
 import CategoryRoutes from './CategoryRoutes.js';
 import BillboardRoutes from './BillboardRoutes.js';
+import ImagesHomePageRoutes from './ImagesHomePageRoute.js';
 
 export default function Routes(app) {
     app.use('/size', SizeRoutes);
@@ -16,4 +17,5 @@ export default function Routes(app) {
     app.use('/product', ProductRoutes);
     app.use('/category', CategoryRoutes);
     app.use('/billboard', BillboardRoutes);
+    app.use('/imageshomepage', ImagesHomePageRoutes);
 }

@@ -23,17 +23,7 @@ export const createColor = async (req, res) => {
                 data: null,
             });
         }
-        const userExist = await accountsModel.findOne({
-            id: req.user,
-        });
-        if (!userExist) {
-            return res.status(403).json({
-                statusCode: 403,
-                message: 'You are not authenticate.',
-                ok: false,
-                data: null,
-            });
-        }
+
         let colorExist = await colorsModel.findOne({
             name: newColorFromClient.name,
             storeId: newColorFromClient.storeId,
@@ -157,17 +147,7 @@ export const updateColor = async (req, res) => {
                 data: null,
             });
         }
-        const userExist = await accountsModel.findOne({
-            id: req.user,
-        });
-        if (!userExist) {
-            return res.status(403).json({
-                statusCode: 403,
-                message: 'You are not authenticate.',
-                ok: false,
-                data: null,
-            });
-        }
+
         const existColor = await colorsModel.findOne({
             _id: colorId,
             storeId,
@@ -223,17 +203,7 @@ export const deleteColor = async (req, res) => {
                 data: null,
             });
         }
-        const userExist = await accountsModel.findOne({
-            id: req.user,
-        });
-        if (!userExist) {
-            return res.status(403).json({
-                statusCode: 403,
-                message: 'You are not authenticate.',
-                ok: false,
-                data: null,
-            });
-        }
+
         const color = await colorsModel.findOne({
             _id: colorId,
         });

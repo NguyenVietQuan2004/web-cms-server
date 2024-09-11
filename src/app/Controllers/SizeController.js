@@ -23,17 +23,7 @@ export const createSize = async (req, res) => {
                 data: null,
             });
         }
-        const userExist = await accountsModel.findOne({
-            id: req.user,
-        });
-        if (!userExist) {
-            return res.status(403).json({
-                statusCode: 403,
-                message: 'You are not authenticate.',
-                ok: false,
-                data: null,
-            });
-        }
+
         let sizeExist = await sizesModel.findOne({
             name: newSizeFromClient.name,
             storeId: newSizeFromClient.storeId,
@@ -155,17 +145,7 @@ export const updateSize = async (req, res) => {
                 data: null,
             });
         }
-        const userExist = await accountsModel.findOne({
-            id: req.user,
-        });
-        if (!userExist) {
-            return res.status(403).json({
-                statusCode: 403,
-                message: 'You are not authenticate.',
-                ok: false,
-                data: null,
-            });
-        }
+
         const existSize = await sizesModel.findOne({
             _id: sizeId,
             storeId,
@@ -221,17 +201,7 @@ export const deleteSize = async (req, res) => {
                 data: null,
             });
         }
-        const userExist = await accountsModel.findOne({
-            id: req.user,
-        });
-        if (!userExist) {
-            return res.status(403).json({
-                statusCode: 403,
-                message: 'You are not authenticate.',
-                ok: false,
-                data: null,
-            });
-        }
+
         const size = await sizesModel.findOne({
             _id: sizeId,
         });

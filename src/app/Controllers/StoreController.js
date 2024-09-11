@@ -26,17 +26,6 @@ export const createStore = async (req, res) => {
                 data: null,
             });
         }
-        const userExist = await accountsModel.findOne({
-            id: req.user,
-        });
-        if (!userExist) {
-            return res.status(403).json({
-                statusCode: 403,
-                message: 'You are not authenticate.',
-                ok: false,
-                data: null,
-            });
-        }
 
         const nameExist = await storesModel.findOne({
             name: newStoreFromClient.name,

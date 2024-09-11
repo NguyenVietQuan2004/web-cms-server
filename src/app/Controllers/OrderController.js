@@ -1,7 +1,7 @@
 import { ordersModel } from '../Models/OrderModel.js';
 import { productsModel } from '../Models/ProductModel.js';
 import { accountsModel } from '../Models/AccountModel.js';
-import { v4 as uuidv4 } from 'uuid';
+import cron from 'node-cron';
 // {
 //     _id:
 //     storeId:
@@ -10,6 +10,7 @@ import { v4 as uuidv4 } from 'uuid';
 //             _id: 'f465e34b-608b-4b1c-be55-0ae9603bbca5',
 //             size: 'xxxxxl',
 //             color: 'blue',
+//             amount: 1
 //         },
 //      ]
 //     phone:
@@ -20,6 +21,56 @@ import { v4 as uuidv4 } from 'uuid';
 // }
 
 // [POST] /order
+cron.schedule('*/30 * * * * *', async () => {
+    try {
+        const numMinute = 1;
+        const AnyMinutesAgo = new Date(Date.now() - numMinute * 60 * 1000); // 5 phút trước
+        const expiredOrders = await ordersModel.find({
+            isPaid: false,
+            createdAt: { $lte: AnyMinutesAgo },
+        });
+
+        if (expiredOrders.length > 0) {
+            console.log(`Found ${expiredOrders.length} expired orders, processing cancellation...`);
+
+            // Xóa các đơn hàng hết hạn và chưa thanh toán
+            await ordersModel.deleteMany({ _id: { $in: expiredOrders.map((order) => order._id) } });
+            // tra lai so luong san pham
+            for (const order of expiredOrders) {
+                const listProductOrder = order.listProductOrder;
+                for (const productOrder of listProductOrder) {
+                    const existProduct = await productsModel.findOne({
+                        storeId: order.storeId,
+                        _id: productOrder._id,
+                    });
+
+                    if (!existProduct) {
+                        console.log('Khong tim thay san pham khi tra lai so luong cua san pham khi huy don hang');
+                    }
+                    const size = productOrder.size;
+                    const amount = productOrder.amount;
+                    const objectPrice = existProduct.arrayPrice.find((objectPrice) => objectPrice.size === size);
+                    if (objectPrice) {
+                        await productsModel.updateOne(
+                            {
+                                storeId: order.storeId,
+                                _id: productOrder._id,
+                            },
+                            {
+                                $set: { 'arrayPrice.$[elem].amount': objectPrice.amount + amount },
+                            },
+                            {
+                                arrayFilters: [{ 'elem.size': size }],
+                            },
+                        );
+                    }
+                }
+            }
+        }
+    } catch (error) {
+        console.error('Error during checking expired orders:', error);
+    }
+});
 export const createOrder = async (req, res) => {
     try {
         const newOrderFromClient = req.body;
@@ -30,6 +81,58 @@ export const createOrder = async (req, res) => {
                 ok: false,
                 data: null,
             });
+        }
+
+        const listProductOrder = newOrderFromClient.listProductOrder;
+        for (const productOrder of listProductOrder) {
+            const existProduct = await productsModel.findOne({
+                storeId: newOrderFromClient.storeId,
+                _id: productOrder._id,
+            });
+
+            if (!existProduct) {
+                return res.status(401).json({
+                    statusCode: 401,
+                    message: 'Product order id  is wrong.',
+                    ok: false,
+                    data: null,
+                });
+            }
+            const size = productOrder.size;
+            const amount = productOrder.amount;
+            const objectPrice = existProduct.arrayPrice.find((objectPrice) => objectPrice.size === size);
+            if (objectPrice.amount - amount < 0) {
+                return res.status(401).json({
+                    statusCode: 401,
+                    message: 'Product is not enough amount.',
+                    ok: false,
+                    data: null,
+                });
+            }
+        }
+
+        // Giải quyết trường hợp 1 cái đặt được nhưng mấy cái sau ko đặt được
+
+        for (const productOrder of listProductOrder) {
+            const existProduct = await productsModel.findOne({
+                storeId: newOrderFromClient.storeId,
+                _id: productOrder._id,
+            });
+            const size = productOrder.size;
+            const amount = productOrder.amount;
+            const objectPrice = existProduct.arrayPrice.find((objectPrice) => objectPrice.size === size);
+            await productsModel.updateOne(
+                {
+                    storeId: newOrderFromClient.storeId,
+                    _id: productOrder._id,
+                },
+                {
+                    $set: { 'arrayPrice.$[elem].amount': objectPrice.amount - amount },
+                },
+                {
+                    arrayFilters: [{ 'elem.size': size }],
+                },
+            );
         }
 
         const order = await ordersModel(newOrderFromClient);
@@ -52,26 +155,6 @@ export const createOrder = async (req, res) => {
 // [GET] /order/getall
 
 export const getAllOrder = async (req, res) => {
-    // const order = await ordersModel({
-    //     storeId: '203f904e-e8e5-434a-9f22-b339029556f6',
-    //     listProductOrder: [
-    //         {
-    //             _id: '9621d2ce-5414-4e9b-a9e1-8716cb1ae19c',
-    //             size: 'L',
-    //             color: 'red',
-    //         },
-    //         {
-    //             _id: '2a99907c-c0f4-493d-a548-b340145d48b5',
-    //             size: 'L',
-    //             color: 'black',
-    //         },
-    //     ],
-    //     isPaid: true,
-    //     phone: '0763948610',
-    //     address: 'Thoi an o mon can tho',
-    // });
-    // await order.save();
-
     try {
         if (!req.query.storeId) {
             res.status(200).json({
@@ -81,18 +164,17 @@ export const getAllOrder = async (req, res) => {
                 ok: true,
             });
         }
-        const listModel = await ordersModel
+        const listOrder = await ordersModel
             .find({
                 storeId: req.query.storeId,
             })
             .sort({ createdAt: -1 })
             .populate({
                 path: 'listProductOrder._id',
-                match: { storeId: req.query.storeId },
+                model: 'products',
             });
-        // cho nay tra ve mang product
         res.status(200).json({
-            data: listModel,
+            data: listOrder,
             statusCode: 200,
             message: 'Get list order success',
             ok: true,
@@ -113,7 +195,6 @@ export const updateOrder = async (req, res) => {
         const phone = req.body.phone;
         const address = req.body.address;
         const isPaid = req.body.isPaid;
-
         if (!orderId) {
             return res.status(401).json({
                 statusCode: 401,
@@ -126,6 +207,7 @@ export const updateOrder = async (req, res) => {
         const existOrder = await ordersModel.findOne({
             _id: orderId,
         });
+
         if (!existOrder) {
             return res.status(401).json({
                 statusCode: 401,
@@ -147,27 +229,6 @@ export const updateOrder = async (req, res) => {
                 new: true,
             },
         );
-        // nếu đã thanh toán thì trừ số lượng của product
-        if (isPaid) {
-            console.log(newOrderUpdate);
-            const listProductOrder = newOrderUpdate.listProductOrder;
-            for (const i = 0; i < listProductOrder.length; i++) {
-                const existProduct = await productsModel.findOne({
-                    storeId: newOrderUpdate.storeId,
-                    _id: listProductOrder[i]._id,
-                });
-                await productsModel.findOneAndUpdate(
-                    {
-                        storeId: newOrderUpdate.storeId,
-                        _id: listProductOrder[i]._id,
-                    },
-                    {
-                        // upadte lai so luong cua size do
-                        $set: '',
-                    },
-                );
-            }
-        }
         res.status(200).json({
             data: newOrderUpdate,
             statusCode: 200,
@@ -193,17 +254,6 @@ export const deleteOrder = async (req, res) => {
             return res.status(401).json({
                 statusCode: 401,
                 message: 'Order id or store id  is missing.',
-                ok: false,
-                data: null,
-            });
-        }
-        const userExist = await accountsModel.findOne({
-            id: req.user,
-        });
-        if (!userExist) {
-            return res.status(403).json({
-                statusCode: 403,
-                message: 'You are not authenticate.',
                 ok: false,
                 data: null,
             });
@@ -240,25 +290,16 @@ export const overviewOrder = async (req, res) => {
                 data: null,
             });
         }
-        const userExist = await accountsModel.findOne({
-            id: req.user,
-        });
-
-        if (!userExist) {
-            return res.status(403).json({
-                statusCode: 403,
-                message: 'You are not authenticate.',
-                ok: false,
-                data: null,
-            });
-        }
 
         const listOrderPaid = await ordersModel
             .find({
                 storeId,
                 isPaid: true,
             })
-            .populate('listProductOrder._id');
+            .populate({
+                path: 'listProductOrder._id',
+                model: 'products',
+            });
         const countProductsInStock = await productsModel.countDocuments({
             storeId,
             isArchive: false,
