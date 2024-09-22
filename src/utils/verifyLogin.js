@@ -20,7 +20,6 @@ export const verifyLogin = (req, res, next) => {
                     data: null,
                 });
             }
-            console.log(userExist);
             req.user = user;
             // user: id
             next();

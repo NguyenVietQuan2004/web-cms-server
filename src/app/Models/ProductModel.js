@@ -8,6 +8,19 @@ const Schema = new mongoose.Schema(
             required: true,
             default: () => uuidv4(),
         },
+        name: {
+            type: String,
+            require: true,
+            default: () => new Date().getSeconds(),
+        },
+        arrayPrice: {
+            type: Array,
+            require: true,
+        },
+        sale: {
+            type: Number,
+            require: true,
+        },
         storeId: {
             type: String,
             require: true,
@@ -20,15 +33,6 @@ const Schema = new mongoose.Schema(
             type: String,
             require: true,
             ref: 'categories',
-        },
-        arrayPrice: {
-            type: Array,
-            require: true,
-        },
-        name: {
-            type: String,
-            require: true,
-            default: () => new Date().getSeconds(),
         },
         isFeature: {
             type: Boolean,

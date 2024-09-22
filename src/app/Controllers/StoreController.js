@@ -1,18 +1,16 @@
+import { ordersModel } from '../Models/OrderModel.js';
 import { storesModel } from '../Models/StoreModel.js';
-import { accountsModel } from '../Models/AccountModel.js';
 import { productsModel } from '../Models/ProductModel.js';
 import { categoriesModel } from '../Models/CategoryModel.js';
 import { billBoardsModel } from '../Models/BillBoardModel.js';
-import { ordersModel } from '../Models/OrderModel.js';
-import { signOut } from './AccountController.js';
 
-// {
-//     _id:
-//     name:
-//     userId:
-//     createAt:
-//     updateAt:
-// }
+//{
+//  _id,
+//  name,
+//  userId,
+//  createAt,
+//  updateAt,
+//}
 
 //   [POST] /store
 export const createStore = async (req, res) => {
@@ -71,7 +69,7 @@ export const getAllStore = async (req, res) => {
         res.status(200).json({
             data: listStore,
             statusCode: 200,
-            message: 'Get list store success',
+            message: 'Get list store success.',
             ok: true,
         });
     } catch (error) {
@@ -83,8 +81,8 @@ export const getAllStore = async (req, res) => {
         });
     }
 };
-// [GET] /store?_id=storeId
 
+// [GET] /store?_id=storeId
 export const getStore = async (req, res) => {
     const storeId = req.query._id;
     try {
@@ -98,7 +96,7 @@ export const getStore = async (req, res) => {
             return res.status(400).json({
                 data: null,
                 statusCode: 400,
-                message: 'StoreId is wrong.',
+                message: 'Store id is wrong.',
                 ok: false,
             });
         }
@@ -117,6 +115,7 @@ export const getStore = async (req, res) => {
         });
     }
 };
+
 // [PUT] /store
 export const updateStore = async (req, res) => {
     try {
@@ -125,7 +124,7 @@ export const updateStore = async (req, res) => {
         if (!storeId || !newName) {
             return res.status(401).json({
                 statusCode: 401,
-                message: 'Missing name or storeId store.',
+                message: 'Missing name or store id store.',
                 ok: false,
                 data: null,
             });
@@ -160,6 +159,7 @@ export const updateStore = async (req, res) => {
         });
     }
 };
+
 // [delete] /store
 export const deleteStore = async (req, res) => {
     try {

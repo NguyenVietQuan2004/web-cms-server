@@ -1,16 +1,16 @@
-import { accountsModel } from '../Models/AccountModel.js';
 import { productsModel } from '../Models/ProductModel.js';
 import { categoriesModel } from '../Models/CategoryModel.js';
 import { billBoardsModel } from '../Models/BillBoardModel.js';
 
-// {
-//      _id:
-//     name:
-//     storeId:
-//     billBoardId:
-//     createAt:
-//     updateAt
-// }
+//{
+//   _id,
+//  name,
+//  storeId,
+//  billBoardId,
+//  createAt,
+//  updateAt,
+//}
+
 // [POST] /category
 export const createCategory = async (req, res) => {
     try {
@@ -23,9 +23,7 @@ export const createCategory = async (req, res) => {
                 data: null,
             });
         }
-        const userExist = await accountsModel.findOne({
-            id: req.user,
-        });
+
         const categoryExist = await categoriesModel.findOne({
             name: newCategoryFromClient.name,
             storeId: newCategoryFromClient.storeId,
@@ -55,8 +53,8 @@ export const createCategory = async (req, res) => {
         });
     }
 };
-// [GET] /category
 
+// [GET] /category
 export const getCategory = async (req, res) => {
     try {
         const category = await categoriesModel.findOne({
@@ -96,8 +94,8 @@ export const getCategory = async (req, res) => {
         });
     }
 };
-// [GET] /category/getall
 
+// [GET] /category/getall
 export const getAllCategory = async (req, res) => {
     try {
         if (!req.query.storeId) {
@@ -129,8 +127,8 @@ export const getAllCategory = async (req, res) => {
         });
     }
 };
-// [PUT] /category
 
+// [PUT] /category
 export const updateCategory = async (req, res) => {
     try {
         const billboardId = req.body.billboardId;
@@ -146,10 +144,6 @@ export const updateCategory = async (req, res) => {
                 data: null,
             });
         }
-        const userExist = await accountsModel.findOne({
-            id: req.user,
-        });
-
         const existCategory = await categoriesModel.findOne({
             _id: categoryId,
             storeId,
@@ -191,8 +185,8 @@ export const updateCategory = async (req, res) => {
         });
     }
 };
-// [DELETE] /category
 
+// [DELETE] /category
 export const deleteCategory = async (req, res) => {
     try {
         const categoryId = req.body._id;

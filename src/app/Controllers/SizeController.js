@@ -1,15 +1,14 @@
 import { sizesModel } from '../Models/SizeModel.js';
-import { accountsModel } from '../Models/AccountModel.js';
 import { productsModel } from '../Models/ProductModel.js';
 
-// {
-//     _id:
-//     storeId:
-//     name:
-//     value:
-//     createAt:
-//     updateAt
-// }
+//{
+//  _id,
+//  storeId,
+//  name,
+//  value,
+//   createAt,
+//  updateAt,
+//}
 
 // [POST] /size
 export const createSize = async (req, res) => {

@@ -1,14 +1,13 @@
-import { accountsModel } from '../Models/AccountModel.js';
 import { billBoardsModel } from '../Models/BillBoardModel.js';
 import { categoriesModel } from '../Models/CategoryModel.js';
 
-// {
-//      _id:
-//     label:
-//     image:
-//     createAt:
-//     updateAt
-// }
+//{
+//   _id,
+//  label,
+//  image,
+//  createAt,
+//  updateAt,
+//}
 
 // [POST] /billboard
 export const createBillboard = async (req, res) => {
@@ -39,8 +38,8 @@ export const createBillboard = async (req, res) => {
         });
     }
 };
-// [GET] /billboard
 
+// [GET] /billboard
 export const getBillboard = async (req, res) => {
     try {
         const billboard = await billBoardsModel.findOne({
@@ -70,8 +69,8 @@ export const getBillboard = async (req, res) => {
         });
     }
 };
-// [GET] /billboard/getall
 
+// [GET] /billboard/getall
 export const getAllBillboard = async (req, res) => {
     try {
         if (!req.query.storeId) {
@@ -160,8 +159,8 @@ export const updateBillboard = async (req, res) => {
         });
     }
 };
-// [DELETE] /billboard
 
+// [DELETE] /billboard
 export const deleteBillboard = async (req, res) => {
     try {
         const billboardId = req.body._id;

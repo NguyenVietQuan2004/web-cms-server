@@ -2,27 +2,22 @@ import { sizesModel } from '../Models/SizeModel.js';
 import { colorsModel } from '../Models/ColorModel.js';
 import { ordersModel } from '../Models/OrderModel.js';
 import { productsModel } from '../Models/ProductModel.js';
-import { accountsModel } from '../Models/AccountModel.js';
 import { categoriesModel } from '../Models/CategoryModel.js';
 import { isMissingInformationProduct } from '../../utils/isMissingInformationProduct.js';
 
-import { v4 as uuidv4 } from 'uuid';
-
-// {
-//     _id:
-//     storeId:
-//     categoryId:
-//     arrayPrice:
-//              [
-//              {
-//                  price: 4, amount:10}
-//      ]
-//     name:
-//     isFeature:
-//     isArchive:
-//     createAt:
-//     updateAt
-// }
+//{
+//  _id,
+//  storeId,
+//  images,
+//  categoryId,
+//  arrayPrice:[{size: L , colors:["black, blue"], amount: 1,price: 10, amount_sold: 2},...],
+//  name,
+//  sale,
+//  isFeature,
+//  isArchive,
+//  createdAt,
+//  updatedAt,
+//}
 
 // [POST] /product
 export const createProduct = async (req, res) => {
@@ -96,10 +91,10 @@ export const getProduct = async (req, res) => {
 
         const productsRelative = await productsModel.aggregate([
             {
-                $match: { categoryId: req.query.categoryId },
+                $match: { categoryId: req.query.categoryId, isArchive: false },
             },
             {
-                $sample: { size: 10 },
+                $sample: { size: 8 },
             },
             {
                 $lookup: {
@@ -156,6 +151,33 @@ export const getProduct = async (req, res) => {
 // [GET] /product/getall
 
 export const getAllProduct = async (req, res) => {
+    // const result = await productsModel.updateMany({}, [
+    //     {
+    //         $set: {
+    //             arrayPrice: {
+    //                 $map: {
+    //                     input: '$arrayPrice',
+    //                     as: 'item',
+    //                     in: {
+    //                         $mergeObjects: [
+    //                             '$$item',
+    //                             {
+    //                                 amount_sold: {
+    //                                     $cond: {
+    //                                         if: { $gt: [{ $type: '$$item.amount_sold' }, 'missing'] },
+    //                                         then: 1, // Nếu amount_sold tồn tại, gán giá trị là 1
+    //                                         else: 2, // Nếu không tồn tại, gán giá trị là 2
+    //                                     },
+    //                                 },
+    //                             },
+    //                         ],
+    //                     },
+    //                 },
+    //             },
+    //         },
+    //     },
+    // ]);
+
     const limit = parseInt(req.query.limit) || 100;
     const page = parseInt(req.query.page) || 1;
     const skip = limit * (page - 1);
@@ -263,7 +285,7 @@ export const updateProduct = async (req, res) => {
         if (isMissingInformationProduct(newProductFromClient)) {
             return res.status(401).json({
                 statusCode: 401,
-                message: 'Missing information billboard .',
+                message: 'Missing information product.',
                 ok: false,
                 data: null,
             });
@@ -367,14 +389,14 @@ export const getAllProductById = async (req, res) => {
             .populate('categoryId');
         res.status(200).json({
             data: { listProduct },
-            message: 'Get all product by id success.',
+            message: 'Get all products by id success.',
             ok: true,
             statusCode: 200,
         });
     } catch (error) {
         return res.status(500).json({
             statusCode: 500,
-            message: 'Something went wrong. Get all product by id failed',
+            message: 'Something went wrong. Get all products by id failed',
             ok: false,
             data: error,
         });

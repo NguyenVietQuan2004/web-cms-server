@@ -1,6 +1,6 @@
 import express from 'express';
-import { createStore, deleteStore, getAllStore, getStore, updateStore } from '../Controllers/StoreController.js';
 import { verifyLogin } from '../../utils/verifyLogin.js';
+import { createStore, deleteStore, getAllStore, getStore, updateStore } from '../Controllers/StoreController.js';
 const router = express();
 
 router.get('/', verifyLogin, getStore);

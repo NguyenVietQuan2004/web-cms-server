@@ -1,4 +1,3 @@
-import express from 'express';
 import {
     getBillboard,
     createBillboard,
@@ -6,6 +5,7 @@ import {
     getAllBillboard,
     updateBillboard,
 } from '../Controllers/BillboardController.js';
+import express from 'express';
 import { verifyLogin } from '../../utils/verifyLogin.js';
 const router = express();
 

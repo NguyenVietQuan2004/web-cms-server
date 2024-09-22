@@ -17,5 +17,5 @@ export default function Routes(app) {
     app.use('/product', ProductRoutes);
     app.use('/category', CategoryRoutes);
     app.use('/billboard', BillboardRoutes);
-    app.use('/imageshomepage', ImagesHomePageRoutes);
+    app.use('/informationhomepage', ImagesHomePageRoutes);
 }

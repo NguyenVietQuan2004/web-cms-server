@@ -1,13 +1,13 @@
-import { accountsModel } from '../Models/AccountModel.js';
 import { ImagesHomePageModel } from '../Models/ImagesHomePageModel.js';
+import { productsModel } from '../Models/ProductModel.js';
 
-// {
-//      _id:
-//     billboardFeature:
-//     billboardBST:
-//     backgroundInsurance:
-//     storeId
-// }
+//{
+//  _id,
+//  billboardFeature,
+//  billboardBST,
+//  backgroundInsurance,
+//  storeId,
+//}
 
 // [POST] /imagesHomePage
 export const CreateImagesHomePage = async (req, res) => {
@@ -54,6 +54,7 @@ export const CreateImagesHomePage = async (req, res) => {
         });
     }
 };
+
 // [GET] /imagesHomePage
 export const getImagesHomePage = async (req, res) => {
     try {
@@ -68,8 +69,42 @@ export const getImagesHomePage = async (req, res) => {
                 ok: false,
             });
         }
+        const listProduct = await productsModel
+            .find({ storeId: req.query.storeId, isArchive: false })
+            .sort({ createdAt: -1 })
+            .limit(5)
+            .populate('categoryId');
+
+        const arrayProductBestSeller = await productsModel.aggregate([
+            {
+                $unwind: '$arrayPrice', // Tách mảng arrayPrice ra thành các document riêng
+            },
+            {
+                $group: {
+                    _id: '$_id', // Group theo product _id
+                    totalAmountSold: { $sum: '$arrayPrice.amount_sold' }, // Tính tổng amount_sold
+                },
+            },
+            {
+                $sort: { totalAmountSold: -1 }, // Sắp xếp giảm dần theo tổng amount_sold
+            },
+            {
+                $limit: 1, // Chỉ lấy 1 sản phẩm có tổng cao nhất
+            },
+        ]);
+        const productBestSeller = await productsModel.findOne({
+            _id: arrayProductBestSeller[0]._id,
+        });
+        const productHighestSale = await productsModel.findOne().sort({ sale: -1 });
+        console.log(productHighestSale);
         res.status(200).json({
-            data: imagesHomePage,
+            data: {
+                ImagesHomePage: imagesHomePage,
+                listProductNewDiscover: listProduct,
+                listProductMostPopular: listProduct, // còn cái này
+                productBestSeller,
+                productHighestSale,
+            },
             statusCode: 200,
             message: 'Get imagesHomePage success.',
             ok: true,
@@ -85,7 +120,6 @@ export const getImagesHomePage = async (req, res) => {
 };
 
 // [PUT] /imagesHomePage
-
 export const updateImagesHomePage = async (req, res) => {
     try {
         const storeId = req.body.storeId;

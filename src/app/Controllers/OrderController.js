@@ -1,24 +1,17 @@
+import cron from 'node-cron';
 import { ordersModel } from '../Models/OrderModel.js';
 import { productsModel } from '../Models/ProductModel.js';
-import { accountsModel } from '../Models/AccountModel.js';
-import cron from 'node-cron';
-// {
-//     _id:
-//     storeId:
-//      listProductOrder: [
-//         {
-//             _id: 'f465e34b-608b-4b1c-be55-0ae9603bbca5',
-//             size: 'xxxxxl',
-//             color: 'blue',
-//             amount: 1
-//         },
-//      ]
-//     phone:
-//     address:
-//     createAt:
-//     updateAt:
-//     isPaid:
-// }
+import mongoose from 'mongoose';
+//{
+//  _id,
+//  phone,
+//  storeId,
+//  address,
+//  isPaid,
+//  listProductOrder: [{productId: , size: , color: , amount: }]
+//  createdAt,
+//  updatedAt,
+//}
 
 // [POST] /order
 cron.schedule('*/30 * * * * *', async () => {
@@ -57,10 +50,13 @@ cron.schedule('*/30 * * * * *', async () => {
                                 _id: productOrder._id,
                             },
                             {
-                                $set: { 'arrayPrice.$[elem].amount': objectPrice.amount + amount },
+                                $set: {
+                                    'arrayPrice.$[elem].amount': objectPrice.amount + amount,
+                                    'arrayPrice.$[elem].amount_sold': objectPrice.amount_sold - amount,
+                                },
                             },
                             {
-                                arrayFilters: [{ 'elem.size': size }],
+                                arrayFilters: [{ 'elem.size': objectPrice.size }],
                             },
                         );
                     }
@@ -72,6 +68,8 @@ cron.schedule('*/30 * * * * *', async () => {
     }
 });
 export const createOrder = async (req, res) => {
+    // const session = await mongoose.startSession();
+    // session.startTransaction();
     try {
         const newOrderFromClient = req.body;
         if (!newOrderFromClient.storeId || !newOrderFromClient.listProductOrder.length) {
@@ -102,6 +100,7 @@ export const createOrder = async (req, res) => {
             const amount = productOrder.amount;
             const objectPrice = existProduct.arrayPrice.find((objectPrice) => objectPrice.size === size);
             if (objectPrice.amount - amount < 0) {
+                console.log('da chay len day');
                 return res.status(401).json({
                     statusCode: 401,
                     message: 'Product is not enough amount.',
@@ -121,22 +120,28 @@ export const createOrder = async (req, res) => {
             const size = productOrder.size;
             const amount = productOrder.amount;
             const objectPrice = existProduct.arrayPrice.find((objectPrice) => objectPrice.size === size);
-            await productsModel.updateOne(
+            console.log(size, objectPrice);
+            const data = await productsModel.updateOne(
                 {
                     storeId: newOrderFromClient.storeId,
                     _id: productOrder._id,
                 },
                 {
-                    $set: { 'arrayPrice.$[elem].amount': objectPrice.amount - amount },
+                    $set: {
+                        'arrayPrice.$[elem].amount_sold': objectPrice.amount_sold + amount,
+                        'arrayPrice.$[elem].amount': objectPrice.amount - amount,
+                    },
                 },
                 {
-                    arrayFilters: [{ 'elem.size': size }],
+                    arrayFilters: [{ 'elem.size': objectPrice.size }],
                 },
             );
+            console.log(data);
         }
 
         const order = await ordersModel(newOrderFromClient);
         await order.save();
+        // await session.commitTransaction();
         res.status(200).json({
             data: order,
             message: 'Create order success.',
@@ -144,12 +149,15 @@ export const createOrder = async (req, res) => {
             statusCode: 200,
         });
     } catch (error) {
+        // await session.abortTransaction();
         res.status(500).json({
             data: error,
             statusCode: 500,
             message: 'Something went wrong. Create order failed.',
             ok: false,
         });
+    } finally {
+        // session.endSession(); // Đóng session sau khi giao dịch hoàn tất
     }
 };
 // [GET] /order/getall
@@ -279,6 +287,7 @@ export const deleteOrder = async (req, res) => {
     }
 };
 
+// [GET] /overview
 export const overviewOrder = async (req, res) => {
     try {
         const storeId = req.query.storeId;

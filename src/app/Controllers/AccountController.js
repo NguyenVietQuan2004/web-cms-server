@@ -1,14 +1,14 @@
 import { accountsModel } from '../Models/AccountModel.js';
 import generatorToken from '../../utils/generatorToken.js';
 
-// {
-//     id?:
-//     email?:
-//     password?:
-//     userName:
-//     createAt:
-//     updateAt:
-// }
+//{
+//  id?,
+//  email?,
+//  password?,
+//  userName,
+//  createAt,
+//  updateAt,
+//}
 
 // [POST] /auth/register
 export const register = async (req, res) => {
@@ -51,6 +51,7 @@ export const register = async (req, res) => {
         });
     }
 };
+
 // [POST] auth/login
 export const login = async (req, res) => {
     try {
@@ -139,6 +140,8 @@ export const loginWithFirebase = async (req, res) => {
         });
     }
 };
+
+//[POST] /signout
 export const signOut = async (req, res) => {
     try {
         res.setHeader('Set-Cookie', `accessToken=; Path=/; HttpOnly; ; Secure; Partitioned; SameSite=None`);
