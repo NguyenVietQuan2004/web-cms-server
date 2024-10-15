@@ -2,6 +2,7 @@ import SizeRoutes from './SizeRoutes.js';
 import OrderRoutes from './OrderRoutes.js';
 import ColorRoutes from './ColorRoutes.js';
 import StoreRoutes from './StoreRoutes.js';
+import MessageRoute from './MessageRoute.js';
 import ProductRoutes from './ProductRoutes.js';
 import AccountRoutes from './AccountRoutes.js';
 import CategoryRoutes from './CategoryRoutes.js';
@@ -16,6 +17,7 @@ export default function Routes(app) {
     app.use('/auth', AccountRoutes);
     app.use('/product', ProductRoutes);
     app.use('/category', CategoryRoutes);
+    app.use('/message', MessageRoute);
     app.use('/billboard', BillboardRoutes);
     app.use('/informationhomepage', ImagesHomePageRoutes);
 }

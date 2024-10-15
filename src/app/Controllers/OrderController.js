@@ -100,7 +100,6 @@ export const createOrder = async (req, res) => {
             const amount = productOrder.amount;
             const objectPrice = existProduct.arrayPrice.find((objectPrice) => objectPrice.size === size);
             if (objectPrice.amount - amount < 0) {
-                console.log('da chay len day');
                 return res.status(401).json({
                     statusCode: 401,
                     message: 'Product is not enough amount.',
@@ -120,7 +119,6 @@ export const createOrder = async (req, res) => {
             const size = productOrder.size;
             const amount = productOrder.amount;
             const objectPrice = existProduct.arrayPrice.find((objectPrice) => objectPrice.size === size);
-            console.log(size, objectPrice);
             const data = await productsModel.updateOne(
                 {
                     storeId: newOrderFromClient.storeId,
@@ -136,7 +134,6 @@ export const createOrder = async (req, res) => {
                     arrayFilters: [{ 'elem.size': objectPrice.size }],
                 },
             );
-            console.log(data);
         }
 
         const order = await ordersModel(newOrderFromClient);

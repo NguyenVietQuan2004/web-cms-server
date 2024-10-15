@@ -96,7 +96,6 @@ export const getImagesHomePage = async (req, res) => {
             _id: arrayProductBestSeller[0]._id,
         });
         const productHighestSale = await productsModel.findOne().sort({ sale: -1 });
-        console.log(productHighestSale);
         res.status(200).json({
             data: {
                 ImagesHomePage: imagesHomePage,

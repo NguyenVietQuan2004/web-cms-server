@@ -5,7 +5,6 @@ import mongoose from 'mongoose';
 import bodyParser from 'body-parser';
 import cookieParser from 'cookie-parser';
 import routes from './src/app/Routes/index.js';
-
 dotenv.config();
 const app = express();
 const port = process.env.PORT || 5000;
