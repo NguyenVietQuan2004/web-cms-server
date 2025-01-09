@@ -16,7 +16,7 @@ import mongoose from 'mongoose';
 // [POST] /order
 cron.schedule('*/30 * * * * *', async () => {
     try {
-        const numMinute = 1;
+        const numMinute = 10;
         const AnyMinutesAgo = new Date(Date.now() - numMinute * 60 * 1000); // 5 phút trước
         const expiredOrders = await ordersModel.find({
             isPaid: false,
