@@ -20,6 +20,7 @@ const Schema = new mongoose.Schema(
         senderId: {
             type: String,
             required: true,
+            ref: 'accounts',
         },
     },
     { timestamps: true },

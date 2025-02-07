@@ -111,7 +111,8 @@ export const getAllSize = async (req, res) => {
             .find({
                 storeId: req.query.storeId,
             })
-            .sort({ createdAt: -1 });
+            .sort({ createdAt: -1 })
+            .populate('storeId');
         res.status(200).json({
             data: listSize,
             statusCode: 200,

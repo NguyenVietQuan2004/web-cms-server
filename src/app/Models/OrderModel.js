@@ -11,6 +11,7 @@ const Schema = new mongoose.Schema(
         storeId: {
             type: String,
             require: true,
+            ref: 'stores',
         },
         listProductOrder: {
             type: Array,
@@ -20,6 +21,11 @@ const Schema = new mongoose.Schema(
         isPaid: {
             type: Boolean,
             require: true,
+        },
+
+        paid_at: {
+            type: Date,
+            default: null,
         },
         amount: {
             type: Number,
@@ -39,3 +45,8 @@ const Schema = new mongoose.Schema(
     { timestamps: true },
 );
 export const ordersModel = mongoose.model('orders', Schema);
+
+// lưu lại lịch sử update
+// tham chiếu
+// chức năng, -> tổ chức dữ liệu như thế nào tại sao cần, ràng buộc
+// xóa mềm

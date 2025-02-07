@@ -16,7 +16,7 @@ import mongoose from 'mongoose';
 // [POST] /order
 cron.schedule('*/30 * * * * *', async () => {
     try {
-        const numMinute = 10;
+        const numMinute = 5;
         const AnyMinutesAgo = new Date(Date.now() - numMinute * 60 * 1000); // 5 phút trước
         const expiredOrders = await ordersModel.find({
             isPaid: false,
@@ -200,6 +200,7 @@ export const updateOrder = async (req, res) => {
         const phone = req.body.phone;
         const address = req.body.address;
         const isPaid = req.body.isPaid;
+        const paid_at = req.body.paid_at;
         if (!orderId) {
             return res.status(401).json({
                 statusCode: 401,
@@ -229,6 +230,7 @@ export const updateOrder = async (req, res) => {
                 isPaid,
                 phone,
                 address,
+                paid_at,
             },
             {
                 new: true,

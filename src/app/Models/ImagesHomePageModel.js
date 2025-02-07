@@ -23,6 +23,7 @@ const Schema = new mongoose.Schema(
         storeId: {
             type: String,
             required: true,
+            ref: 'stores',
         },
     },
     { timestamps: true },

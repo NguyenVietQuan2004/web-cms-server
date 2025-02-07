@@ -11,6 +11,7 @@ const Schema = new mongoose.Schema(
         storeId: {
             type: String,
             require: true,
+            ref: 'stores',
         },
         name: {
             type: String,
